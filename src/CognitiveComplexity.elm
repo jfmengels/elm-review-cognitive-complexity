@@ -71,7 +71,12 @@ expressionVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionVisitor node context =
     case Node.value node of
         Expression.IfBlock _ _ _ ->
-            ( [], { context | complexity = context.complexity + context.nesting } )
+            ( []
+            , { context
+                | complexity = context.complexity + context.nesting
+                , nesting = context.nesting + 1
+              }
+            )
 
         _ ->
             ( [], context )
@@ -89,7 +94,7 @@ declarationExitVisitor threshold node context =
                 _ ->
                     []
     in
-    ( errors, { context | complexity = 0 } )
+    ( errors, { context | complexity = 0, nesting = 1 } )
 
 
 reportComplexity : Int -> Expression.Function -> Context -> List (Rule.Error {})
