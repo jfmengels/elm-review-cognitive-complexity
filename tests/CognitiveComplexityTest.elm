@@ -41,4 +41,21 @@ fun n =
                             , under = "fun"
                             }
                         ]
+        , test "should count if expression as 1" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    if cond then
+      1
+    else
+      2
+"""
+                    |> Review.Test.run (rule -1)
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "Cognitive complexity was 1, higher than the allowed -1"
+                            , details = [ "REPLACEME" ]
+                            , under = "fun"
+                            }
+                        ]
         ]
