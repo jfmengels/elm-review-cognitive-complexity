@@ -99,3 +99,22 @@ declarationExitVisitor threshold node context =
 
         _ ->
             ( [], context )
+
+
+
+{- TODO Ponder: How to handle let declarations
+
+   - Expressions with lots of let declarations are/feel harder to read, so I think it should
+   - increase the complexity by one, regardless of how deeply nested something is (otherwise people will move the let declaration to the root)
+   - not increment the nesting value
+
+   Is 1. inherently more complex than 2.?
+
+    func n =
+      let
+        doThing1 b = blabla b + clacla b
+        doThing2 b = blabla b + clacla b
+        doThing3 b = blabla b + clacla b
+      in
+      doThing1 n + doThing2 n + doThing3 n
+-}
