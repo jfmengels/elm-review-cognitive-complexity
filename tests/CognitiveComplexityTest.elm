@@ -135,9 +135,10 @@ fun n =
                             , under = "fun"
                             }
                         ]
-        , test "should increment once when using the && boolean operator" <|
-            \() ->
-                """module A exposing (..)
+        , Test.only <|
+            test "should increment once when using the && boolean operator" <|
+                \() ->
+                    """module A exposing (..)
 fun n =
     if                  -- +1
         a               -- +1
@@ -147,14 +148,14 @@ fun n =
     else
         2
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 3, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                        |> Review.Test.run (rule -1)
+                        |> Review.Test.expectErrors
+                            [ Review.Test.error
+                                { message = "fun: Cognitive complexity was 3, higher than the allowed -1"
+                                , details = [ "REPLACEME" ]
+                                , under = "fun"
+                                }
+                            ]
         , test "should increment once when using the || boolean operator" <|
             \() ->
                 """module A exposing (..)

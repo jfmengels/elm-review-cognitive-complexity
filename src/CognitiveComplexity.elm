@@ -87,8 +87,15 @@ expressionEnterVisitor node context =
               }
             )
 
-        Expression.OperatorApplication operator _ _ _ ->
+        Expression.OperatorApplication operator _ left right ->
             if operator == "&&" || operator == "||" then
+                let
+                    _ =
+                        Debug.log "left" (Node.value left)
+
+                    _ =
+                        Debug.log "right" (Node.value right)
+                in
                 if operator == "&&" then
                     ( [], { context | complexity = context.complexity + 1 } )
 
