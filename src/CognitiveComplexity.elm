@@ -7,7 +7,7 @@ module CognitiveComplexity exposing (rule)
 -}
 
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
-import Elm.Syntax.Expression exposing (Expression)
+import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
 import Review.Rule as Rule exposing (Rule)
 
@@ -67,7 +67,12 @@ initialContext =
 
 expressionVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionVisitor node context =
-    ( [], context )
+    case Node.value node of
+        Expression.IfBlock _ _ _ ->
+            ( [], { context | complexity = context.complexity + 1 } )
+
+        _ ->
+            ( [], context )
 
 
 declarationExitVisitor : Int -> Node Declaration -> Context -> ( List (Rule.Error {}), Context )
