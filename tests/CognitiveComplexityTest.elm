@@ -41,6 +41,20 @@ fun n =
                             , under = "fun"
                             }
                         ]
+        , test "should count a simple value or operation as 0" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    n + 1
+"""
+                    |> Review.Test.run (rule -1)
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "fun: Cognitive complexity was 0, higher than the allowed -1"
+                            , details = [ "REPLACEME" ]
+                            , under = "fun"
+                            }
+                        ]
         , test "should count if expression as 1" <|
             \() ->
                 """module A exposing (..)
