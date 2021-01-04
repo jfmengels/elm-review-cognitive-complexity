@@ -50,7 +50,7 @@ rule : Int -> Rule
 rule threshold =
     Rule.newModuleRuleSchema "CognitiveComplexity" initialContext
         |> Rule.withDeclarationExitVisitor (declarationExitVisitor threshold)
-        |> Rule.withExpressionEnterVisitor expressionVisitor
+        |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.fromModuleRuleSchema
 
 
@@ -67,8 +67,8 @@ initialContext =
     }
 
 
-expressionVisitor : Node Expression -> Context -> ( List nothing, Context )
-expressionVisitor node context =
+expressionEnterVisitor : Node Expression -> Context -> ( List nothing, Context )
+expressionEnterVisitor node context =
     case Node.value node of
         Expression.IfBlock _ _ _ ->
             ( []
