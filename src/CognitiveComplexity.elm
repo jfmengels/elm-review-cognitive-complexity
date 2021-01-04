@@ -77,28 +77,36 @@ expressionVisitor node context =
 
 declarationExitVisitor : Int -> Node Declaration -> Context -> ( List (Rule.Error {}), Context )
 declarationExitVisitor threshold node context =
-    case Node.value node of
-        Declaration.FunctionDeclaration function ->
-            let
-                functionName : Node String
-                functionName =
-                    function.declaration |> Node.value |> .name
-            in
-            if context.complexity > threshold then
-                ( [ Rule.error
-                        { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt context.complexity ++ ", higher than the allowed " ++ String.fromInt threshold
-                        , details = [ "REPLACEME" ]
-                        }
-                        (Node.range functionName)
-                  ]
-                , context
-                )
+    let
+        errors : List (Rule.Error {})
+        errors =
+            case Node.value node of
+                Declaration.FunctionDeclaration function ->
+                    reportComplexity threshold function context
 
-            else
-                ( [], context )
+                _ ->
+                    []
+    in
+    ( errors, context )
 
-        _ ->
-            ( [], context )
+
+reportComplexity : Int -> Expression.Function -> Context -> List (Rule.Error {})
+reportComplexity threshold function context =
+    let
+        functionName : Node String
+        functionName =
+            function.declaration |> Node.value |> .name
+    in
+    if context.complexity > threshold then
+        [ Rule.error
+            { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt context.complexity ++ ", higher than the allowed " ++ String.fromInt threshold
+            , details = [ "REPLACEME" ]
+            }
+            (Node.range functionName)
+        ]
+
+    else
+        []
 
 
 
