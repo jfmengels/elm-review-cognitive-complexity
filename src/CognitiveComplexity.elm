@@ -6,6 +6,8 @@ module CognitiveComplexity exposing (rule)
 
 -}
 
+import Elm.Syntax.Expression exposing (Expression)
+import Elm.Syntax.Node exposing (Node)
 import Review.Rule as Rule exposing (Rule)
 
 
@@ -43,8 +45,18 @@ elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules 
 ```
 
 -}
-rule : Rule
-rule =
-    Rule.newModuleRuleSchema "CognitiveComplexity" ()
-        -- Add your visitors
+rule : Int -> Rule
+rule threshold =
+    Rule.newModuleRuleSchema "CognitiveComplexity" initialContext
+        |> Rule.withExpressionEnterVisitor (expressionVisitor)
         |> Rule.fromModuleRuleSchema
+
+type alias Context = ()
+
+initialContext : Context
+initialContext =
+    ()
+
+expressionVisitor : Node Expression -> Context -> (List nothing, Context)
+expressionVisitor node context =
+    ([], context)
