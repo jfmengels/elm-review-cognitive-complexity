@@ -87,7 +87,7 @@ declarationExitVisitor threshold node context =
                 _ ->
                     []
     in
-    ( errors, context )
+    ( errors, { context | complexity = 0 } )
 
 
 reportComplexity : Int -> Expression.Function -> Context -> List (Rule.Error {})
