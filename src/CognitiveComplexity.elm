@@ -48,15 +48,19 @@ elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules 
 rule : Int -> Rule
 rule threshold =
     Rule.newModuleRuleSchema "CognitiveComplexity" initialContext
-        |> Rule.withExpressionEnterVisitor (expressionVisitor)
+        |> Rule.withExpressionEnterVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
 
-type alias Context = ()
+
+type alias Context =
+    ()
+
 
 initialContext : Context
 initialContext =
     ()
 
-expressionVisitor : Node Expression -> Context -> (List nothing, Context)
+
+expressionVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionVisitor node context =
-    ([], context)
+    ( [], context )
