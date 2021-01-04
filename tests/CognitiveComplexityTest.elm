@@ -36,7 +36,7 @@ fun n =
                     |> Review.Test.run (rule -1)
                     |> Review.Test.expectErrors
                         [ Review.Test.error
-                            { message = "REPLACEME"
+                            { message = "Cognitive complexity was 0, higher than the allowed -1"
                             , details = [ "REPLACEME" ]
                             , under = "fun"
                             }

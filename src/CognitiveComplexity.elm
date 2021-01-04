@@ -76,7 +76,7 @@ declarationExitVisitor threshold node context =
         Declaration.FunctionDeclaration function ->
             if context.complexity > threshold then
                 ( [ Rule.error
-                        { message = "REPLACEME"
+                        { message = "Cognitive complexity was " ++ String.fromInt context.complexity ++ ", higher than the allowed " ++ String.fromInt threshold
                         , details = [ "REPLACEME" ]
                         }
                         (function.declaration |> Node.value |> .name |> Node.range)
