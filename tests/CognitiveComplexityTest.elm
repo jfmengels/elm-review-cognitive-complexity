@@ -111,6 +111,30 @@ fun n =
                             , under = "fun"
                             }
                         ]
+        , test "should decrement the nesting when leaving a nested structure" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    if cond then        -- +1
+      if cond then      -- +2
+        if cond then    -- +3
+          1
+        else
+          2
+      else
+        2
+    else
+      case n of         -- +2
+        () -> ()
+"""
+                    |> Review.Test.run (rule -1)
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "fun: Cognitive complexity was 8, higher than the allowed -1"
+                            , details = [ "REPLACEME" ]
+                            , under = "fun"
+                            }
+                        ]
         , test "the complexity of a function should not affect another function's computed complexity" <|
             \() ->
                 """module A exposing (..)

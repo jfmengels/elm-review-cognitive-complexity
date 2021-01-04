@@ -51,6 +51,7 @@ rule threshold =
     Rule.newModuleRuleSchema "CognitiveComplexity" initialContext
         |> Rule.withDeclarationExitVisitor (declarationExitVisitor threshold)
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
+        |> Rule.withExpressionExitVisitor expressionExitVisitor
         |> Rule.fromModuleRuleSchema
 
 
@@ -83,6 +84,27 @@ expressionEnterVisitor node context =
             , { context
                 | complexity = context.complexity + context.nesting
                 , nesting = context.nesting + 1
+              }
+            )
+
+        _ ->
+            ( [], context )
+
+
+expressionExitVisitor : Node Expression -> Context -> ( List nothing, Context )
+expressionExitVisitor node context =
+    case Node.value node of
+        Expression.IfBlock _ _ _ ->
+            ( []
+            , { context
+                | nesting = context.nesting - 1
+              }
+            )
+
+        Expression.CaseExpression _ ->
+            ( []
+            , { context
+                | nesting = context.nesting - 1
               }
             )
 
