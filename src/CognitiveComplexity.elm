@@ -78,6 +78,14 @@ expressionEnterVisitor node context =
               }
             )
 
+        Expression.CaseExpression _ ->
+            ( []
+            , { context
+                | complexity = context.complexity + context.nesting
+                , nesting = context.nesting + 1
+              }
+            )
+
         _ ->
             ( [], context )
 

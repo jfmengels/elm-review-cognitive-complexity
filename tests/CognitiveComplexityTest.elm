@@ -91,6 +91,26 @@ fun n =
                             , under = "fun"
                             }
                         ]
+        , test "should count nesting of case expressions" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    case n of           -- +1
+      1 -> ()
+      2 -> ()
+      3 -> case n of    -- +2
+            _ -> ()
+      4 -> ()
+      _ -> ()
+"""
+                    |> Review.Test.run (rule -1)
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "fun: Cognitive complexity was 3, higher than the allowed -1"
+                            , details = [ "REPLACEME" ]
+                            , under = "fun"
+                            }
+                        ]
         , test "the complexity of a function should not affect another function's computed complexity" <|
             \() ->
                 """module A exposing (..)
