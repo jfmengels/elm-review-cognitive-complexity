@@ -87,6 +87,15 @@ expressionEnterVisitor node context =
               }
             )
 
+        Expression.OperatorApplication operator _ _ _ ->
+            if operator == "&&" || operator == "||" then
+                ( []
+                , { context | complexity = context.complexity + 1 }
+                )
+
+            else
+                ( [], context )
+
         _ ->
             ( [], context )
 
