@@ -56,12 +56,14 @@ rule threshold =
 
 type alias Context =
     { complexity : Int
+    , nesting : Int
     }
 
 
 initialContext : Context
 initialContext =
     { complexity = 0
+    , nesting = 1
     }
 
 
@@ -69,7 +71,7 @@ expressionVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionVisitor node context =
     case Node.value node of
         Expression.IfBlock _ _ _ ->
-            ( [], { context | complexity = context.complexity + 1 } )
+            ( [], { context | complexity = context.complexity + context.nesting } )
 
         _ ->
             ( [], context )
