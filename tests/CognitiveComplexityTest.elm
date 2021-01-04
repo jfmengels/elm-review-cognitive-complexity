@@ -8,12 +8,32 @@ import Test exposing (Test, describe, test)
 all : Test
 all =
     describe "CognitiveComplexity"
-        [ test "should report an error when REPLACEME" <|
+        [ test "should not report an error when the complexity is lower than the threshold" <|
             \() ->
                 """module A exposing (..)
 a = 1
 """
-                    |> Review.Test.run rule
+                    |> Review.Test.run (rule 1)
+                    |> Review.Test.expectNoErrors
+        , test "should report an error when the complexity is higher than the threshold" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    if cond then
+      if cond then
+        if cond then
+          if cond then
+            1
+          else
+            2
+        else
+          2
+      else
+        2
+    else
+      2
+"""
+                    |> Review.Test.run (rule -1)
                     |> Review.Test.expectErrors
                         [ Review.Test.error
                             { message = "REPLACEME"
