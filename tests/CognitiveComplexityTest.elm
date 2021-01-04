@@ -19,10 +19,10 @@ a = 1
             \() ->
                 """module A exposing (..)
 fun n =
-    if cond then
-      if cond then
-        if cond then
-          if cond then
+    if cond then        -- +1
+      if cond then      -- +2
+        if cond then    -- +3
+          if cond then  -- +4
             1
           else
             2
