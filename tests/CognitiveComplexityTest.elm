@@ -38,7 +38,7 @@ fun n =
                         [ Review.Test.error
                             { message = "REPLACEME"
                             , details = [ "REPLACEME" ]
-                            , under = "REPLACEME"
+                            , under = "fun"
                             }
                         ]
         ]

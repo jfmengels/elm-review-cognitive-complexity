@@ -6,8 +6,9 @@ module CognitiveComplexity exposing (rule)
 
 -}
 
+import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression exposing (Expression)
-import Elm.Syntax.Node exposing (Node)
+import Elm.Syntax.Node as Node exposing (Node)
 import Review.Rule as Rule exposing (Rule)
 
 
@@ -48,19 +49,43 @@ elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules 
 rule : Int -> Rule
 rule threshold =
     Rule.newModuleRuleSchema "CognitiveComplexity" initialContext
+        |> Rule.withDeclarationExitVisitor (declarationExitVisitor threshold)
         |> Rule.withExpressionEnterVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
 
 
 type alias Context =
-    ()
+    { complexity : Int
+    }
 
 
 initialContext : Context
 initialContext =
-    ()
+    { complexity = 0
+    }
 
 
 expressionVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionVisitor node context =
     ( [], context )
+
+
+declarationExitVisitor : Int -> Node Declaration -> Context -> ( List (Rule.Error {}), Context )
+declarationExitVisitor threshold node context =
+    case Node.value node of
+        Declaration.FunctionDeclaration function ->
+            if context.complexity > threshold then
+                ( [ Rule.error
+                        { message = "REPLACEME"
+                        , details = [ "REPLACEME" ]
+                        }
+                        (function.declaration |> Node.value |> .name |> Node.range)
+                  ]
+                , context
+                )
+
+            else
+                ( [], context )
+
+        _ ->
+            ( [], context )
