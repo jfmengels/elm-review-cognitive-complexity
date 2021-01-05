@@ -234,8 +234,8 @@ declarationExitVisitor node context =
 finalEvaluation : Int -> Context -> List (Rule.Error {})
 finalEvaluation threshold context =
     let
-        callsToRecursiveFunctions : Dict String Int
-        callsToRecursiveFunctions =
+        numberOfDifferentRecursiveCalls : Dict String Int
+        numberOfDifferentRecursiveCalls =
             context.functionsToReport
                 |> List.map
                     (\{ functionName, references } ->
@@ -250,7 +250,7 @@ finalEvaluation threshold context =
             let
                 finalComplexity : Int
                 finalComplexity =
-                    complexity + (Dict.get (Node.value functionName) callsToRecursiveFunctions |> Maybe.withDefault 0)
+                    complexity + (Dict.get (Node.value functionName) numberOfDifferentRecursiveCalls |> Maybe.withDefault 0)
             in
             if finalComplexity > threshold then
                 Just
