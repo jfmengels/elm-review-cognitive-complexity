@@ -274,7 +274,7 @@ findCycles graph =
         |> List.foldl
             (\vertice ( cycles, visited ) ->
                 let
-                    res : { cycles : Set ( String, String ), visited : Visited }
+                    res : { cycles : Set ( String, String ), visited : Visited, stack : List String }
                     res =
                         processDFSTree
                             graph
@@ -287,7 +287,7 @@ findCycles graph =
         |> Tuple.first
 
 
-processDFSTree : Dict String (List String) -> List String -> Visited -> { cycles : Set ( String, String ), visited : Visited }
+processDFSTree : Dict String (List String) -> List String -> Visited -> { cycles : Set ( String, String ), visited : Visited, stack : List String }
 processDFSTree graph stack visited =
     let
         vertices : List String
@@ -306,19 +306,24 @@ processDFSTree graph stack visited =
                     acc
 
                 Nothing ->
-                    processDFSTree
-                        graph
-                        (vertice :: stack)
-                        (Dict.insert vertice InStack visited)
+                    let
+                        res =
+                            processDFSTree
+                                graph
+                                (vertice :: stack)
+                                (Dict.insert vertice InStack visited)
+                    in
+                    { cycles = res.cycles, visited = res.visited }
         )
         { cycles = Set.empty, visited = visited }
         vertices
         |> (\res ->
-                { res
-                    | visited =
-                        List.head stack
-                            |> Maybe.map (\v -> Dict.insert v Done res.visited)
-                            |> Maybe.withDefault res.visited
+                { cycles = res.cycles
+                , visited =
+                    List.head stack
+                        |> Maybe.map (\v -> Dict.insert v Done res.visited)
+                        |> Maybe.withDefault res.visited
+                , stack = List.drop 1 stack
                 }
            )
 
