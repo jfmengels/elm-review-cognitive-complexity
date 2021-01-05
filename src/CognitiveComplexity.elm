@@ -300,7 +300,7 @@ processDFSTree graph stack visited =
         (\vertice acc ->
             case Dict.get vertice visited of
                 Just InStack ->
-                    { acc | cycles = insertCycle stack acc.cycles }
+                    { acc | cycles = insertCycle stack vertice acc.cycles }
 
                 Just Done ->
                     acc
@@ -328,8 +328,30 @@ processDFSTree graph stack visited =
            )
 
 
-insertCycle stack cycles =
-    cycles
+insertCycle : List comparable -> comparable -> Set ( comparable, comparable ) -> Set ( comparable, comparable )
+insertCycle stack vertice cycles =
+    case stack of
+        x :: xs ->
+            Set.union
+                (Set.fromList (takeTop xs x vertice))
+                cycles
+
+        [] ->
+            cycles
+
+
+takeTop : List a -> a -> a -> List ( a, a )
+takeTop stack previousValue stopValue =
+    case stack of
+        [] ->
+            []
+
+        x :: xs ->
+            if x /= stopValue then
+                ( x, previousValue ) :: takeTop xs x stopValue
+
+            else
+                []
 
 
 
