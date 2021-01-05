@@ -1,6 +1,7 @@
 module CognitiveComplexityTest exposing (all)
 
 import CognitiveComplexity exposing (rule)
+import Expect exposing (Expectation)
 import Review.Test
 import Test exposing (Test, describe, test)
 
@@ -258,3 +259,20 @@ alsoSimple n =
                             }
                         ]
         ]
+
+
+expectComplexity : List ( String, Int ) -> String -> Expectation
+expectComplexity functionComplexities source =
+    source
+        |> Review.Test.run (rule -1)
+        |> Review.Test.expectErrors
+            (List.map
+                (\( fnName, expected ) ->
+                    Review.Test.error
+                        { message = fnName ++ ": Cognitive complexity was " ++ String.fromInt expected ++ ", higher than the allowed -1"
+                        , details = [ "REPLACEME" ]
+                        , under = fnName
+                        }
+                )
+                functionComplexities
+            )
