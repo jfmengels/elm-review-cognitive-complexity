@@ -93,9 +93,6 @@ expressionEnterVisitor node context =
         Expression.OperatorApplication operator _ left right ->
             if (operator == "&&" || operator == "||") && not (List.member (Node.range node) context.operandsToIgnore) then
                 let
-                    _ =
-                        List.member (Node.range node) context.operandsToIgnore
-
                     ( complexity, operandsToIgnore ) =
                         incrementAndIgnoreForOperands
                             operator
@@ -137,19 +134,12 @@ incrementAndIgnore parentOperator node =
         Expression.OperatorApplication operator _ left right ->
             if operator == "&&" || operator == "||" then
                 let
-                    _ =
-                        operator
-
                     newOperatorIncrement : Int
                     newOperatorIncrement =
                         if operator == parentOperator then
                             0
 
                         else
-                            let
-                                _ =
-                                    Node.range node
-                            in
                             1
                 in
                 incrementAndIgnoreForOperands
