@@ -433,3 +433,6 @@ takeTop stack ( previousValue, previousValues ) stopValue =
       in
       doThing1 n + doThing2 n + doThing3 n
 -}
+-- TODO Add explanations of how complexity was increased at every step
+-- TODO Add error details explaining how to simplify
+-- TODO Add documentation
