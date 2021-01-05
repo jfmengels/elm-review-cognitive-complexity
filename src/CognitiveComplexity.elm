@@ -224,7 +224,15 @@ finalEvaluation threshold context =
     let
         callsToRecursiveFunctions : Dict String Int
         callsToRecursiveFunctions =
-            Dict.fromList [ ( "fib", 1 ), ( "fun1", 1 ), ( "fun2", 1 ) ]
+            context.functionsToReport
+                |> List.map
+                    (\{ functionName, references } ->
+                        ( Node.value functionName, references )
+                    )
+                |> Dict.fromList
+                |> findCycles
+
+        --Dict.fromList [ ( "fib", 1 ), ( "fun1", 1 ), ( "fun2", 1 ) ]
     in
     context.functionsToReport
         --|> List.map
