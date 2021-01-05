@@ -287,7 +287,12 @@ findCycles graph =
 
 processDFSTree : Dict String (List String) -> List String -> Visited -> ( Set ( String, String ), Visited )
 processDFSTree graph stack visited =
-    ( Set.empty, visited )
+    case List.head stack of
+        Just v ->
+            ( Set.empty, visited )
+
+        Nothing ->
+            ( Set.empty, visited )
 
 
 
