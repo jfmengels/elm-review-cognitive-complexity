@@ -48,14 +48,7 @@ fun n =
 fun n =
     n + 1
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 0, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fun", 0 ) ]
         , test "should count if expression as 1" <|
             \() ->
                 """module A exposing (..)
@@ -65,14 +58,7 @@ fun n =
     else
       2
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 1, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fun", 1 ) ]
         , test "should count case expression as 1" <|
             \() ->
                 """module A exposing (..)
@@ -84,14 +70,7 @@ fun n =
       4 -> ()
       _ -> ()
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 1, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fun", 1 ) ]
         , test "should count nesting of case expressions" <|
             \() ->
                 """module A exposing (..)
@@ -104,14 +83,7 @@ fun n =
       4 -> ()
       _ -> ()
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 3, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fun", 3 ) ]
         , test "should decrement the nesting when leaving a nested structure" <|
             \() ->
                 """module A exposing (..)
@@ -128,14 +100,7 @@ fun n =
       case n of         -- +2
         () -> ()
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 8, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fun", 8 ) ]
         , test "should increment once when using the && boolean operator" <|
             \() ->
                 """module A exposing (..)
@@ -147,14 +112,7 @@ fun n =
     else
         2
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 2, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fun", 2 ) ]
         , test "should increment once when using the || boolean operator" <|
             \() ->
                 """module A exposing (..)
@@ -166,14 +124,7 @@ fun n =
     else
         2
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 2, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fun", 2 ) ]
         , test "should increment when mixing boolean operators" <|
             \() ->
                 """module A exposing (..)
@@ -187,14 +138,7 @@ fun n =
     else
         2
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 4, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fun", 4 ) ]
         , test "should increment when find a recursive call" <|
             \() ->
                 """module A exposing (..)
@@ -204,14 +148,7 @@ fun n =
     else
         1
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 2, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fun", 2 ) ]
         , test "should only increment once, even if there are multiple recursive calls" <|
             \() ->
                 """module A exposing (..)
@@ -222,14 +159,7 @@ fib n =
     else
         0
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 2, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
-                        ]
+                    |> expectComplexity [ ( "fib", 2 ) ]
         , test "the complexity of a function should not affect another function's computed complexity" <|
             \() ->
                 """module A exposing (..)
@@ -250,13 +180,10 @@ alsoSimple n =
     else
       2
 """
-                    |> Review.Test.run (rule 1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 3, higher than the allowed 1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
+                    |> expectComplexity
+                        [ ( "simple", 0 )
+                        , ( "fun", 3 )
+                        , ( "alsoSimple", 1 )
                         ]
         ]
 
