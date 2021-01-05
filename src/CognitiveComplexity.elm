@@ -400,7 +400,7 @@ takeTop stack ( previousValue, previousValues ) stopValue =
                 takeTop xs ( x, previousValue :: previousValues ) stopValue
 
             else
-                ( previousValue, previousValues )
+                ( x, previousValue :: previousValues )
 
 
 
