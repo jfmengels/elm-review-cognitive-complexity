@@ -220,18 +220,16 @@ declarationExitVisitor node context =
 
 finalEvaluation : Int -> Context -> List (Rule.Error {})
 finalEvaluation threshold context =
+    let
+        callGraph : List (Set String)
+        callGraph =
+            [ Set.singleton "fib" ]
+    in
     context.functionsToReport
         |> List.map
             (\{ functionName, complexity, references } ->
                 { functionName = functionName
-                , complexity =
-                    complexity
-                        + (if Set.member (Node.value functionName) references then
-                            1
-
-                           else
-                            0
-                          )
+                , complexity = complexity + List.length (List.filter (\set -> Set.member (Node.value functionName) set) callGraph)
                 }
             )
         |> List.filterMap
