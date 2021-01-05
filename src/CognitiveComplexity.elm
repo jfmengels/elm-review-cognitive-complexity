@@ -244,35 +244,27 @@ finalEvaluation threshold context =
                 |> Dict.fromList
                 |> findRecursiveCalls
                 |> Dict.map (\_ recursiveFunctions -> Set.size recursiveFunctions)
-
-        --Dict.fromList [ ( "fib", 1 ), ( "fun1", 1 ), ( "fun2", 1 ) ]
     in
-    context.functionsToReport
-        --|> List.map
-        --    (\{ functionName, complexity, references } ->
-        --        { functionName = functionName
-        --        , complexity = complexity + List.length (List.filter (\set -> Set.member (Node.value functionName) set) callGraph)
-        --        }
-        --    )
-        |> List.filterMap
-            (\{ functionName, complexity } ->
-                let
-                    finalComplexity : Int
-                    finalComplexity =
-                        complexity + (Dict.get (Node.value functionName) callsToRecursiveFunctions |> Maybe.withDefault 0)
-                in
-                if finalComplexity > threshold then
-                    Just
-                        (Rule.error
-                            { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
-                            , details = [ "REPLACEME" ]
-                            }
-                            (Node.range functionName)
-                        )
+    List.filterMap
+        (\{ functionName, complexity } ->
+            let
+                finalComplexity : Int
+                finalComplexity =
+                    complexity + (Dict.get (Node.value functionName) callsToRecursiveFunctions |> Maybe.withDefault 0)
+            in
+            if finalComplexity > threshold then
+                Just
+                    (Rule.error
+                        { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
+                        , details = [ "REPLACEME" ]
+                        }
+                        (Node.range functionName)
+                    )
 
-                else
-                    Nothing
-            )
+            else
+                Nothing
+        )
+        context.functionsToReport
 
 
 
