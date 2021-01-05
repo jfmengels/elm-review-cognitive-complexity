@@ -427,4 +427,3 @@ takeTop stack ( previousValue, previousValues ) stopValue =
       in
       doThing1 n + doThing2 n + doThing3 n
 -}
--- TODO Increment nesting level in lambda

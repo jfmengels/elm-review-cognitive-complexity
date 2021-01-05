@@ -171,6 +171,41 @@ fun n =
         2
 """
                     |> expectComplexity [ ( "fun", 4 ) ]
+        , test "should not increment for anonymous functions" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+  List.map (\\m -> m + 1) n
+"""
+                    |> expectComplexity [ ( "fun", 0 ) ]
+        , test "should increment the nesting inside anonymous functions" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    List.map
+        (\\m ->
+            if cond then    -- +2
+                1
+
+            else
+                2
+        )
+        n
+"""
+                    |> expectComplexity [ ( "fun", 2 ) ]
+        , test "should properly decrement the nesting when exiting an anonymous function" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    let
+        _ = List.map (\\m -> m + 1) n
+    in
+    if cond then    -- +1
+        1
+    else
+        2
+"""
+                    |> expectComplexity [ ( "fun", 1 ) ]
         , test "should increment when find a recursive call" <|
             \() ->
                 """module A exposing (..)
