@@ -96,13 +96,13 @@ expressionEnterVisitor node context =
                     ( complexity, operandsToIgnore ) =
                         incrementAndIgnoreForOperands
                             operator
-                            1
+                            0
                             left
                             right
                 in
                 ( []
                 , { context
-                    | complexity = context.complexity + complexity
+                    | complexity = context.complexity + complexity + 1
                     , operandsToIgnore = operandsToIgnore ++ context.operandsToIgnore
                   }
                 )
