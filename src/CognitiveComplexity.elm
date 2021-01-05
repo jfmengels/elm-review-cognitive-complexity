@@ -18,7 +18,7 @@ import Set exposing (Set)
 {-| Reports... REPLACEME
 
     config =
-        [ CognitiveComplexity.rule
+        [ CognitiveComplexity.rule 10
         ]
 
 
