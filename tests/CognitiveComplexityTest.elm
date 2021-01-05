@@ -1,6 +1,7 @@
 module CognitiveComplexityTest exposing (all)
 
 import CognitiveComplexity exposing (rule)
+import Elm.Syntax.Range exposing (Range)
 import Expect exposing (Expectation)
 import Review.Test
 import Test exposing (Test, describe, test)
@@ -148,7 +149,7 @@ fun n =
     else
         1
 """
-                    |> expectComplexity [ ( "fun", 2 ) ]
+                    |> expectComplexityAt [ ( "fun", 2, { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } } ) ]
         , test "should only increment once, even if there are multiple recursive calls" <|
             \() ->
                 """module A exposing (..)
@@ -159,7 +160,7 @@ fib n =
     else
         0
 """
-                    |> expectComplexity [ ( "fib", 2 ) ]
+                    |> expectComplexityAt [ ( "fib", 2, { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } } ) ]
         , test "should increment the complexity for every recursive call in a chain" <|
             \() ->
                 """module A exposing (..)
@@ -210,6 +211,24 @@ expectComplexity functionComplexities source =
                         , details = [ "REPLACEME" ]
                         , under = fnName
                         }
+                )
+                functionComplexities
+            )
+
+
+expectComplexityAt : List ( String, Int, Range ) -> String -> Expectation
+expectComplexityAt functionComplexities source =
+    source
+        |> Review.Test.run (rule -1)
+        |> Review.Test.expectErrors
+            (List.map
+                (\( fnName, expected, atExactly ) ->
+                    Review.Test.error
+                        { message = fnName ++ ": Cognitive complexity was " ++ String.fromInt expected ++ ", higher than the allowed -1"
+                        , details = [ "REPLACEME" ]
+                        , under = fnName
+                        }
+                        |> Review.Test.atExactly atExactly
                 )
                 functionComplexities
             )
