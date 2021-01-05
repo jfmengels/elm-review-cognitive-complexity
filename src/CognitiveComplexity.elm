@@ -62,6 +62,7 @@ type alias Context =
     { complexity : Int
     , nesting : Int
     , operandsToIgnore : List Range
+    , references : Set String
     , functionsToReport : List FunctionToReport
     }
 
@@ -78,6 +79,7 @@ initialContext =
     { complexity = 0
     , nesting = 1
     , operandsToIgnore = []
+    , references = Set.empty
     , functionsToReport = []
     }
 
@@ -196,7 +198,7 @@ declarationExitVisitor node context =
                 Declaration.FunctionDeclaration function ->
                     { functionName = function.declaration |> Node.value |> .name
                     , complexity = context.complexity
-                    , references = Set.empty
+                    , references = context.references
                     }
                         :: context.functionsToReport
 
@@ -207,6 +209,7 @@ declarationExitVisitor node context =
     , { complexity = 0
       , nesting = 1
       , operandsToIgnore = []
+      , references = Set.empty
       , functionsToReport = functionsToReport
       }
     )
