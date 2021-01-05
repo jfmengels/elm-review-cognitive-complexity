@@ -9,6 +9,7 @@ module CognitiveComplexity exposing (rule)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Range exposing (Range)
 import Review.Rule as Rule exposing (Rule)
 
 
@@ -58,6 +59,7 @@ rule threshold =
 type alias Context =
     { complexity : Int
     , nesting : Int
+    , operandsToIgnore : List Range
     }
 
 
@@ -65,6 +67,7 @@ initialContext : Context
 initialContext =
     { complexity = 0
     , nesting = 1
+    , operandsToIgnore = []
     }
 
 
@@ -88,22 +91,21 @@ expressionEnterVisitor node context =
             )
 
         Expression.OperatorApplication operator _ left right ->
-            if operator == "&&" || operator == "||" then
+            if operator == "&&" || operator == "||" && not (List.member (Node.range node) context.operandsToIgnore) then
                 let
-                    ( complexity, ignore ) =
-                        incrementAndIgnore operator left right
-
-                    _ =
-                        Debug.log "left" (Node.value left)
-
-                    _ =
-                        Debug.log "right" (Node.value right)
+                    ( complexity, operandsToIgnore ) =
+                        incrementAndIgnoreForOperands
+                            operator
+                            1
+                            left
+                            right
                 in
-                if operator == "&&" then
-                    ( [], { context | complexity = context.complexity + complexity } )
-
-                else
-                    ( [], context )
+                ( []
+                , { context
+                    | complexity = context.complexity + complexity
+                    , operandsToIgnore = operandsToIgnore ++ context.operandsToIgnore
+                  }
+                )
 
             else
                 ( [], context )
@@ -112,8 +114,49 @@ expressionEnterVisitor node context =
             ( [], context )
 
 
-incrementAndIgnore operator left right =
-    ( 0, [] )
+incrementAndIgnoreForOperands : String -> Int -> Node Expression -> Node Expression -> ( Int, List Range )
+incrementAndIgnoreForOperands operator complexity left right =
+    let
+        ( leftComplexity, leftIgnore ) =
+            incrementAndIgnore operator left
+
+        ( rightComplexity, rightIgnore ) =
+            incrementAndIgnore operator right
+    in
+    ( leftComplexity + rightComplexity + complexity
+    , Node.range left :: Node.range right :: leftIgnore ++ rightIgnore
+    )
+
+
+incrementAndIgnore : String -> Node Expression -> ( Int, List Range )
+incrementAndIgnore parentOperator node =
+    case Node.value node of
+        Expression.OperatorApplication operator _ left right ->
+            if operator == "&&" || operator == "||" then
+                let
+                    newOperatorIncrement : Int
+                    newOperatorIncrement =
+                        if operator == parentOperator then
+                            0
+
+                        else
+                            let
+                                _ =
+                                    Debug.log "node" (Node.range node)
+                            in
+                            1
+                in
+                incrementAndIgnoreForOperands
+                    operator
+                    newOperatorIncrement
+                    left
+                    right
+
+            else
+                ( 0, [] )
+
+        _ ->
+            ( 0, [] )
 
 
 expressionExitVisitor : Node Expression -> Context -> ( List nothing, Context )
@@ -149,7 +192,7 @@ declarationExitVisitor threshold node context =
                 _ ->
                     []
     in
-    ( errors, { context | complexity = 0, nesting = 1 } )
+    ( errors, { complexity = 0, nesting = 1, operandsToIgnore = [] } )
 
 
 reportComplexity : Int -> Expression.Function -> Context -> List (Rule.Error {})
