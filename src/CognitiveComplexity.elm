@@ -274,25 +274,57 @@ findCycles graph =
         |> List.foldl
             (\vertice ( cycles, visited ) ->
                 let
-                    ( newCycles, newVisited ) =
-                        processDFSTree graph
+                    res : { cycles : Set ( String, String ), visited : Visited }
+                    res =
+                        processDFSTree
+                            graph
                             [ vertice ]
                             (Dict.insert vertice InStack visited)
                 in
-                ( Set.union newCycles cycles, newVisited )
+                ( Set.union res.cycles cycles, res.visited )
             )
             ( Set.empty, Dict.empty )
         |> Tuple.first
 
 
-processDFSTree : Dict String (List String) -> List String -> Visited -> ( Set ( String, String ), Visited )
+processDFSTree : Dict String (List String) -> List String -> Visited -> { cycles : Set ( String, String ), visited : Visited }
 processDFSTree graph stack visited =
-    case List.head stack of
-        Just v ->
-            ( Set.empty, visited )
+    let
+        vertices : List String
+        vertices =
+            List.head stack
+                |> Maybe.andThen (\v -> Dict.get v graph)
+                |> Maybe.withDefault []
+    in
+    List.foldl
+        (\vertice acc ->
+            case Dict.get vertice visited of
+                Just InStack ->
+                    { acc | cycles = insertCycle stack acc.cycles }
 
-        Nothing ->
-            ( Set.empty, visited )
+                Just Done ->
+                    acc
+
+                Nothing ->
+                    processDFSTree
+                        graph
+                        (vertice :: stack)
+                        (Dict.insert vertice InStack visited)
+        )
+        { cycles = Set.empty, visited = visited }
+        vertices
+        |> (\res ->
+                { res
+                    | visited =
+                        List.head stack
+                            |> Maybe.map (\v -> Dict.insert v Done res.visited)
+                            |> Maybe.withDefault res.visited
+                }
+           )
+
+
+insertCycle stack cycles =
+    cycles
 
 
 
