@@ -6,12 +6,12 @@ module CognitiveComplexity exposing (rule)
 
 -}
 
-import Dict
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range exposing (Range)
 import Review.Rule as Rule exposing (Rule)
+import Set exposing (Set)
 
 
 {-| Reports... REPLACEME
@@ -62,7 +62,14 @@ type alias Context =
     { complexity : Int
     , nesting : Int
     , operandsToIgnore : List Range
-    , functionsToReport : List { functionName : Node String, complexity : Int }
+    , functionsToReport : List FunctionToReport
+    }
+
+
+type alias FunctionToReport =
+    { functionName : Node String
+    , complexity : Int
+    , references : Set String
     }
 
 
@@ -183,12 +190,13 @@ expressionExitVisitor node context =
 declarationExitVisitor : Node Declaration -> Context -> ( List (Rule.Error {}), Context )
 declarationExitVisitor node context =
     let
-        functionsToReport : List { functionName : Node String, complexity : Int }
+        functionsToReport : List FunctionToReport
         functionsToReport =
             case Node.value node of
                 Declaration.FunctionDeclaration function ->
                     { functionName = function.declaration |> Node.value |> .name
                     , complexity = context.complexity
+                    , references = Set.empty
                     }
                         :: context.functionsToReport
 
@@ -208,11 +216,11 @@ finalEvaluation : Int -> Context -> List (Rule.Error {})
 finalEvaluation threshold context =
     context.functionsToReport
         |> List.map
-            (\{ functionName, complexity } ->
+            (\{ functionName, complexity, references } ->
                 { functionName = functionName
                 , complexity =
                     complexity
-                        + (if Dict.member (Node.value functionName) Dict.empty then
+                        + (if Set.member (Node.value functionName) references then
                             1
 
                            else
