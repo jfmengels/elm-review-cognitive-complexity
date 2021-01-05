@@ -53,6 +53,7 @@ rule threshold =
         |> Rule.withDeclarationExitVisitor (declarationExitVisitor threshold)
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
+        |> Rule.withFinalModuleEvaluation (finalEvaluation threshold)
         |> Rule.fromModuleRuleSchema
 
 
@@ -60,6 +61,7 @@ type alias Context =
     { complexity : Int
     , nesting : Int
     , operandsToIgnore : List Range
+    , functionsToReport : List { functionName : Node String, complexity : Int }
     }
 
 
@@ -68,6 +70,7 @@ initialContext =
     { complexity = 0
     , nesting = 1
     , operandsToIgnore = []
+    , functionsToReport = []
     }
 
 
@@ -188,7 +191,13 @@ declarationExitVisitor threshold node context =
                 _ ->
                     []
     in
-    ( errors, { complexity = 0, nesting = 1, operandsToIgnore = [] } )
+    ( errors
+    , { complexity = 0
+      , nesting = 1
+      , operandsToIgnore = []
+      , functionsToReport = context.functionsToReport
+      }
+    )
 
 
 reportComplexity : Int -> Expression.Function -> Context -> List (Rule.Error {})
@@ -208,6 +217,19 @@ reportComplexity threshold function context =
 
     else
         []
+
+
+finalEvaluation : Int -> Context -> List (Rule.Error {})
+finalEvaluation threshold context =
+    context.functionsToReport
+        |> List.map
+            (\{ functionName, complexity } ->
+                Rule.error
+                    { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt context.complexity ++ ", higher than the allowed " ++ String.fromInt threshold
+                    , details = [ "REPLACEME" ]
+                    }
+                    (Node.range functionName)
+            )
 
 
 
