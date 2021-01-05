@@ -340,7 +340,7 @@ processDFSTree graph stack visited =
                                 (vertice :: stack)
                                 (Dict.insert vertice InStack visited)
                     in
-                    { recursiveCalls = res.recursiveCalls, visited = res.visited }
+                    { recursiveCalls = mergeRecursiveCallsDict res.recursiveCalls acc.recursiveCalls, visited = res.visited }
         )
         { recursiveCalls = Dict.empty, visited = visited }
         vertices
