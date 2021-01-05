@@ -77,7 +77,7 @@ expressionEnterVisitor node context =
         Expression.IfBlock _ _ _ ->
             ( []
             , { context
-                | complexity = context.complexity + context.nesting
+                | complexity = Debug.log "complexity if" <| context.complexity + context.nesting
                 , nesting = context.nesting + 1
               }
             )
@@ -91,8 +91,11 @@ expressionEnterVisitor node context =
             )
 
         Expression.OperatorApplication operator _ left right ->
-            if operator == "&&" || operator == "||" && not (List.member (Node.range node) context.operandsToIgnore) then
+            if (operator == "&&" || operator == "||") && not (List.member (Node.range node) context.operandsToIgnore) then
                 let
+                    _ =
+                        Debug.log "List.member (Node.range node) context.operandsToIgnore" (List.member (Node.range node) context.operandsToIgnore)
+
                     ( complexity, operandsToIgnore ) =
                         incrementAndIgnoreForOperands
                             operator
@@ -102,7 +105,7 @@ expressionEnterVisitor node context =
                 in
                 ( []
                 , { context
-                    | complexity = context.complexity + complexity + 1
+                    | complexity = Debug.log "complexity operator" <| context.complexity + complexity + 1
                     , operandsToIgnore = operandsToIgnore ++ context.operandsToIgnore
                   }
                 )
@@ -134,6 +137,9 @@ incrementAndIgnore parentOperator node =
         Expression.OperatorApplication operator _ left right ->
             if operator == "&&" || operator == "||" then
                 let
+                    _ =
+                        Debug.log "incrementAndIgnore" operator
+
                     newOperatorIncrement : Int
                     newOperatorIncrement =
                         if operator == parentOperator then
