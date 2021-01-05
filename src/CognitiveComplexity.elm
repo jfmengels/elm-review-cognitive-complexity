@@ -90,6 +90,9 @@ expressionEnterVisitor node context =
         Expression.OperatorApplication operator _ left right ->
             if operator == "&&" || operator == "||" then
                 let
+                    ( complexity, ignore ) =
+                        incrementAndIgnore operator left right
+
                     _ =
                         Debug.log "left" (Node.value left)
 
@@ -97,7 +100,7 @@ expressionEnterVisitor node context =
                         Debug.log "right" (Node.value right)
                 in
                 if operator == "&&" then
-                    ( [], { context | complexity = context.complexity + 1 } )
+                    ( [], { context | complexity = context.complexity + complexity } )
 
                 else
                     ( [], context )
@@ -107,6 +110,10 @@ expressionEnterVisitor node context =
 
         _ ->
             ( [], context )
+
+
+incrementAndIgnore operator left right =
+    ( 0, [] )
 
 
 expressionExitVisitor : Node Expression -> Context -> ( List nothing, Context )
