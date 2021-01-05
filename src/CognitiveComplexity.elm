@@ -77,7 +77,7 @@ expressionEnterVisitor node context =
         Expression.IfBlock _ _ _ ->
             ( []
             , { context
-                | complexity = Debug.log "complexity if" <| context.complexity + context.nesting
+                | complexity = context.complexity + context.nesting
                 , nesting = context.nesting + 1
               }
             )
@@ -94,7 +94,7 @@ expressionEnterVisitor node context =
             if (operator == "&&" || operator == "||") && not (List.member (Node.range node) context.operandsToIgnore) then
                 let
                     _ =
-                        Debug.log "List.member (Node.range node) context.operandsToIgnore" (List.member (Node.range node) context.operandsToIgnore)
+                        List.member (Node.range node) context.operandsToIgnore
 
                     ( complexity, operandsToIgnore ) =
                         incrementAndIgnoreForOperands
@@ -105,7 +105,7 @@ expressionEnterVisitor node context =
                 in
                 ( []
                 , { context
-                    | complexity = Debug.log "complexity operator" <| context.complexity + complexity + 1
+                    | complexity = context.complexity + complexity + 1
                     , operandsToIgnore = operandsToIgnore ++ context.operandsToIgnore
                   }
                 )
@@ -138,7 +138,7 @@ incrementAndIgnore parentOperator node =
             if operator == "&&" || operator == "||" then
                 let
                     _ =
-                        Debug.log "incrementAndIgnore" operator
+                        operator
 
                     newOperatorIncrement : Int
                     newOperatorIncrement =
@@ -148,7 +148,7 @@ incrementAndIgnore parentOperator node =
                         else
                             let
                                 _ =
-                                    Debug.log "node" (Node.range node)
+                                    Node.range node
                             in
                             1
                 in
