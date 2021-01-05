@@ -227,3 +227,5 @@ reportComplexity threshold function context =
       in
       doThing1 n + doThing2 n + doThing3 n
 -}
+-- TODO Don't increment for else if
+-- TODO Increment nesting level in lambda
