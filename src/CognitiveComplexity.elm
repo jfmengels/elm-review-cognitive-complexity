@@ -258,20 +258,34 @@ finalEvaluation threshold context =
 -- FINDING RECURSIVE FUNCTIONS
 
 
+type alias Visited =
+    Dict String VisitState
+
+
+type VisitState
+    = InStack
+    | Done
+
+
 findCycles : Set ( String, String ) -> Set ( String, String )
 findCycles graph =
     graph
         |> Set.toList
         |> List.foldl
-            (\vertice visited ->
-                processDFSTree graph [ vertice ] visited
+            (\vertice ( cycles, visited ) ->
+                let
+                    ( newCycles, newVisited ) =
+                        processDFSTree graph [ vertice ] visited
+                in
+                ( Set.union newCycles cycles, newVisited )
             )
-            Set.empty
+            ( Set.empty, Dict.empty )
+        |> Tuple.first
 
 
-processDFSTree : Set ( String, String ) -> List ( String, String ) -> Set ( String, String ) -> Set ( String, String )
+processDFSTree : Set ( String, String ) -> List ( String, String ) -> Visited -> ( Set ( String, String ), Visited )
 processDFSTree graph stack visited =
-    Set.empty
+    ( Set.empty, visited )
 
 
 
