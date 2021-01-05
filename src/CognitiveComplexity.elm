@@ -342,6 +342,7 @@ processDFSTree graph stack visited =
 
                 Nothing ->
                     let
+                        res : { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
                         res =
                             processDFSTree
                                 graph
