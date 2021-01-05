@@ -183,11 +183,15 @@ expressionExitVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionExitVisitor node context =
     case Node.value node of
         Expression.IfBlock _ _ _ ->
-            ( []
-            , { context
-                | nesting = context.nesting - 1
-              }
-            )
+            if not (List.member (Node.range node) context.elseIfToIgnore) then
+                ( []
+                , { context
+                    | nesting = context.nesting - 1
+                  }
+                )
+
+            else
+                ( [], context )
 
         Expression.CaseExpression _ ->
             ( []
