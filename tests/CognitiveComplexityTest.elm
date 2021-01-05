@@ -160,6 +160,16 @@ fib n =
         0
 """
                     |> expectComplexity [ ( "fib", 2 ) ]
+        , test "should increment the complexity for every recursive call in a chain" <|
+            \() ->
+                """module A exposing (..)
+fun1 n =    -- +1
+  fun2 n
+
+fun2 n =    -- +1
+  fun1 n
+"""
+                    |> expectComplexity [ ( "fun1", 1 ), ( "fun2", 1 ) ]
         , test "the complexity of a function should not affect another function's computed complexity" <|
             \() ->
                 """module A exposing (..)
