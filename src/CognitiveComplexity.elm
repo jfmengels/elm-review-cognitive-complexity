@@ -252,7 +252,7 @@ finalEvaluation threshold context =
                 if finalComplexity > threshold then
                     Just
                         (Rule.error
-                            { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
+                            { message = Debug.log "\nerror" <| Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
                             , details = [ "REPLACEME" ]
                             }
                             (Node.range functionName)
@@ -285,6 +285,7 @@ findRecursiveCalls : Dict String (Set String) -> RecursiveCalls
 findRecursiveCalls graph =
     graph
         |> Dict.keys
+        |> Debug.log "callsToRecursiveFunctions"
         |> List.foldl
             (\vertice ( recursiveCalls, visited ) ->
                 let
@@ -295,7 +296,7 @@ findRecursiveCalls graph =
                             [ vertice ]
                             (Dict.insert vertice InStack visited)
                 in
-                ( mergeRecursiveCallsDict res.recursiveCalls recursiveCalls, res.visited )
+                ( mergeRecursiveCallsDict (Debug.log "recursiveCalls" res.recursiveCalls) recursiveCalls, res.visited )
             )
             ( Dict.empty, Dict.empty )
         |> Tuple.first
@@ -324,9 +325,9 @@ processDFSTree graph stack visited =
     in
     List.foldl
         (\vertice acc ->
-            case Dict.get vertice visited of
+            case Debug.log ("dict.get " ++ vertice) <| Dict.get vertice visited of
                 Just InStack ->
-                    { acc | recursiveCalls = insertCycle stack vertice acc.recursiveCalls }
+                    { acc | recursiveCalls = insertCycle stack vertice acc.recursiveCalls |> Debug.log "insertCycle" }
 
                 Just Done ->
                     acc
@@ -356,7 +357,7 @@ processDFSTree graph stack visited =
 
 insertCycle : List String -> String -> Dict String (Set String) -> Dict String (Set String)
 insertCycle stack vertice recursiveCalls =
-    case stack of
+    case Debug.log "insertCycle stack" stack of
         x :: xs ->
             List.foldl
                 (\( functionName, reference ) acc ->
@@ -366,7 +367,9 @@ insertCycle stack vertice recursiveCalls =
                         acc
                 )
                 recursiveCalls
-                (takeTop xs x vertice)
+                (takeTop xs x vertice
+                    |> Debug.log "takeTop"
+                )
 
         [] ->
             recursiveCalls
@@ -374,7 +377,7 @@ insertCycle stack vertice recursiveCalls =
 
 takeTop : List String -> String -> String -> List ( String, String )
 takeTop stack previousValue stopValue =
-    case stack of
+    case Debug.log ("taktop internal " ++ previousValue) stack of
         [] ->
             []
 
@@ -383,7 +386,7 @@ takeTop stack previousValue stopValue =
                 ( previousValue, x ) :: takeTop xs x stopValue
 
             else
-                []
+                [ ( previousValue, x ) ]
 
 
 
