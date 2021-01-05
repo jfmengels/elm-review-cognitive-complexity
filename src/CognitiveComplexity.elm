@@ -123,6 +123,9 @@ expressionEnterVisitor node context =
             else
                 ( [], context )
 
+        Expression.FunctionOrValue [] name ->
+            ( [], context )
+
         _ ->
             ( [], context )
 
