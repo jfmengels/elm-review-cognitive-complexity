@@ -72,6 +72,25 @@ fun n =
       2
 """
                     |> expectComplexity [ ( "fun", 1 ) ]
+        , test "should properly decrement when exiting else expression" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+  let
+    _ =
+      if cond then        -- +1
+        1
+      else if cond then   -- +0
+        2
+      else
+        3
+  in
+  if cond then            -- +1
+    4
+  else
+    5
+"""
+                    |> expectComplexity [ ( "fun", 2 ) ]
         , test "should count case expression as 1" <|
             \() ->
                 """module A exposing (..)
