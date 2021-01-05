@@ -234,12 +234,17 @@ declarationExitVisitor node context =
 finalEvaluation : Int -> Context -> List (Rule.Error {})
 finalEvaluation threshold context =
     let
+        potentialRecursiveFunctions : Set String
+        potentialRecursiveFunctions =
+            List.map (.functionName >> Node.value) context.functionsToReport
+                |> Set.fromList
+
         numberOfDifferentRecursiveCalls : Dict String Int
         numberOfDifferentRecursiveCalls =
             context.functionsToReport
                 |> List.map
                     (\{ functionName, references } ->
-                        ( Node.value functionName, references )
+                        ( Node.value functionName, Set.intersect references potentialRecursiveFunctions )
                     )
                 |> Dict.fromList
                 |> findRecursiveCalls
