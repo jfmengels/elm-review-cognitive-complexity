@@ -266,7 +266,7 @@ finalEvaluation threshold context =
             if finalComplexity > threshold then
                 Just
                     (Rule.error
-                        { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
+                        { message = Node.value functionName ++ " has a cognitive complexity of " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
                         , details = [ "REPLACEME" ]
                         }
                         (Node.range functionName)

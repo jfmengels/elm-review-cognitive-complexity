@@ -38,7 +38,7 @@ fun n =
                     |> Review.Test.run (rule -1)
                     |> Review.Test.expectErrors
                         [ Review.Test.error
-                            { message = "fun: Cognitive complexity was 10, higher than the allowed -1"
+                            { message = "fun has a cognitive complexity of 10, higher than the allowed -1"
                             , details = [ "REPLACEME" ]
                             , under = "fun"
                             }
@@ -312,7 +312,7 @@ expectComplexity functionComplexities source =
             (List.map
                 (\( fnName, expected ) ->
                     Review.Test.error
-                        { message = fnName ++ ": Cognitive complexity was " ++ String.fromInt expected ++ ", higher than the allowed -1"
+                        { message = fnName ++ " has a cognitive complexity of " ++ String.fromInt expected ++ ", higher than the allowed -1"
                         , details = [ "REPLACEME" ]
                         , under = fnName
                         }
@@ -329,7 +329,7 @@ expectComplexityAt functionComplexities source =
             (List.map
                 (\( fnName, expected, atExactly ) ->
                     Review.Test.error
-                        { message = fnName ++ ": Cognitive complexity was " ++ String.fromInt expected ++ ", higher than the allowed -1"
+                        { message = fnName ++ " has a cognitive complexity of " ++ String.fromInt expected ++ ", higher than the allowed -1"
                         , details = [ "REPLACEME" ]
                         , under = fnName
                         }
