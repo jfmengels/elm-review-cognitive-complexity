@@ -6,6 +6,7 @@ module CognitiveComplexity exposing (rule)
 
 -}
 
+import Dict exposing (Dict)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
@@ -221,23 +222,28 @@ declarationExitVisitor node context =
 finalEvaluation : Int -> Context -> List (Rule.Error {})
 finalEvaluation threshold context =
     let
-        callGraph : List (Set String)
-        callGraph =
-            [ Set.singleton "fib" ]
+        callsToRecursiveFunctions : Dict String Int
+        callsToRecursiveFunctions =
+            Dict.fromList [ ( "fib", 1 ), ( "fun1", 1 ), ( "fun2", 1 ) ]
     in
     context.functionsToReport
-        |> List.map
-            (\{ functionName, complexity, references } ->
-                { functionName = functionName
-                , complexity = complexity + List.length (List.filter (\set -> Set.member (Node.value functionName) set) callGraph)
-                }
-            )
+        --|> List.map
+        --    (\{ functionName, complexity, references } ->
+        --        { functionName = functionName
+        --        , complexity = complexity + List.length (List.filter (\set -> Set.member (Node.value functionName) set) callGraph)
+        --        }
+        --    )
         |> List.filterMap
             (\{ functionName, complexity } ->
-                if complexity > threshold then
+                let
+                    finalComplexity : Int
+                    finalComplexity =
+                        complexity + (Dict.get (Node.value functionName) callsToRecursiveFunctions |> Maybe.withDefault 0)
+                in
+                if finalComplexity > threshold then
                     Just
                         (Rule.error
-                            { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt complexity ++ ", higher than the allowed " ++ String.fromInt threshold
+                            { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
                             , details = [ "REPLACEME" ]
                             }
                             (Node.range functionName)
@@ -246,6 +252,26 @@ finalEvaluation threshold context =
                 else
                     Nothing
             )
+
+
+
+-- FINDING RECURSIVE FUNCTIONS
+
+
+findCycles : Set ( String, String ) -> Set ( String, String )
+findCycles graph =
+    graph
+        |> Set.toList
+        |> List.foldl
+            (\vertice visited ->
+                processDFSTree graph [ vertice ] visited
+            )
+            Set.empty
+
+
+processDFSTree : Set ( String, String ) -> List ( String, String ) -> Set ( String, String ) -> Set ( String, String )
+processDFSTree graph stack visited =
+    Set.empty
 
 
 

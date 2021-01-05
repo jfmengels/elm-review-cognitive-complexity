@@ -170,7 +170,10 @@ fun1 n =    -- +1
 fun2 n =    -- +1
   fun1 n
 """
-                    |> expectComplexity [ ( "fun1", 1 ), ( "fun2", 1 ) ]
+                    |> expectComplexityAt
+                        [ ( "fun1", 1, { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } } )
+                        , ( "fun2", 1, { start = { row = 5, column = 1 }, end = { row = 5, column = 5 } } )
+                        ]
         , test "the complexity of a function should not affect another function's computed complexity" <|
             \() ->
                 """module A exposing (..)
