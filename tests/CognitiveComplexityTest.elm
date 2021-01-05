@@ -60,6 +60,18 @@ fun n =
       2
 """
                     |> expectComplexity [ ( "fun", 1 ) ]
+        , test "should not count if else expressions" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    if cond then        -- +1
+      1
+    else if cond then   -- +0
+      2
+    else
+      2
+"""
+                    |> expectComplexity [ ( "fun", 1 ) ]
         , test "should count case expression as 1" <|
             \() ->
                 """module A exposing (..)
