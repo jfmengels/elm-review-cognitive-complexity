@@ -206,6 +206,12 @@ declarationExitVisitor node context =
 finalEvaluation : Int -> Context -> List (Rule.Error {})
 finalEvaluation threshold context =
     context.functionsToReport
+        |> List.map
+            (\{ functionName, complexity } ->
+                { functionName = functionName
+                , complexity = complexity
+                }
+            )
         |> List.filterMap
             (\{ functionName, complexity } ->
                 if complexity > threshold then
