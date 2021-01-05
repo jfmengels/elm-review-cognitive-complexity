@@ -131,6 +131,9 @@ expressionEnterVisitor node context =
             else
                 ( [], context )
 
+        Expression.LambdaExpression _ ->
+            ( [], { context | nesting = context.nesting + 1 } )
+
         Expression.FunctionOrValue [] name ->
             ( [], { context | references = Set.insert name context.references } )
 
@@ -199,6 +202,9 @@ expressionExitVisitor node context =
                 | nesting = context.nesting - 1
               }
             )
+
+        Expression.LambdaExpression _ ->
+            ( [], { context | nesting = context.nesting - 1 } )
 
         _ ->
             ( [], context )
