@@ -230,7 +230,8 @@ finalEvaluation threshold context =
                         ( Node.value functionName, references )
                     )
                 |> Dict.fromList
-                |> findCycles
+                |> findRecursiveCalls
+                |> Dict.map (\_ recursiveFunctions -> Set.size recursiveFunctions)
 
         --Dict.fromList [ ( "fib", 1 ), ( "fun1", 1 ), ( "fun2", 1 ) ]
     in
@@ -264,6 +265,11 @@ finalEvaluation threshold context =
 
 
 -- FINDING RECURSIVE FUNCTIONS
+-- Algorithm found at https://www.baeldung.com/cs/detecting-recursiveCalls-in-directed-graph
+
+
+type alias RecursiveCalls =
+    Dict String (Set String)
 
 
 type alias Visited =
@@ -275,40 +281,52 @@ type VisitState
     | Done
 
 
-findCycles : Dict String (List String) -> Set ( String, String )
-findCycles graph =
+findRecursiveCalls : Dict String (Set String) -> RecursiveCalls
+findRecursiveCalls graph =
     graph
         |> Dict.keys
         |> List.foldl
-            (\vertice ( cycles, visited ) ->
+            (\vertice ( recursiveCalls, visited ) ->
                 let
-                    res : { cycles : Set ( String, String ), visited : Visited, stack : List String }
+                    res : { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
                     res =
                         processDFSTree
                             graph
                             [ vertice ]
                             (Dict.insert vertice InStack visited)
                 in
-                ( Set.union res.cycles cycles, res.visited )
+                ( mergeRecursiveCallsDict res.recursiveCalls recursiveCalls, res.visited )
             )
-            ( Set.empty, Dict.empty )
+            ( Dict.empty, Dict.empty )
         |> Tuple.first
 
 
-processDFSTree : Dict String (List String) -> List String -> Visited -> { cycles : Set ( String, String ), visited : Visited, stack : List String }
+mergeRecursiveCallsDict : RecursiveCalls -> RecursiveCalls -> RecursiveCalls
+mergeRecursiveCallsDict left right =
+    Dict.merge
+        (\functionName calls dict -> Dict.insert functionName calls dict)
+        (\functionName callsLeft callsRight dict -> Dict.insert functionName (Set.union callsLeft callsRight) dict)
+        (\functionName calls dict -> Dict.insert functionName calls dict)
+        left
+        right
+        Dict.empty
+
+
+processDFSTree : Dict String (Set String) -> List String -> Visited -> { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
 processDFSTree graph stack visited =
     let
         vertices : List String
         vertices =
             List.head stack
                 |> Maybe.andThen (\v -> Dict.get v graph)
-                |> Maybe.withDefault []
+                |> Maybe.withDefault Set.empty
+                |> Set.toList
     in
     List.foldl
         (\vertice acc ->
             case Dict.get vertice visited of
                 Just InStack ->
-                    { acc | cycles = insertCycle stack vertice acc.cycles }
+                    { acc | recursiveCalls = insertCycle stack vertice acc.recursiveCalls }
 
                 Just Done ->
                     acc
@@ -321,12 +339,12 @@ processDFSTree graph stack visited =
                                 (vertice :: stack)
                                 (Dict.insert vertice InStack visited)
                     in
-                    { cycles = res.cycles, visited = res.visited }
+                    { recursiveCalls = res.recursiveCalls, visited = res.visited }
         )
-        { cycles = Set.empty, visited = visited }
+        { recursiveCalls = Dict.empty, visited = visited }
         vertices
         |> (\res ->
-                { cycles = res.cycles
+                { recursiveCalls = res.recursiveCalls
                 , visited =
                     List.head stack
                         |> Maybe.map (\v -> Dict.insert v Done res.visited)
@@ -336,19 +354,25 @@ processDFSTree graph stack visited =
            )
 
 
-insertCycle : List comparable -> comparable -> Set ( comparable, comparable ) -> Set ( comparable, comparable )
-insertCycle stack vertice cycles =
+insertCycle : List String -> String -> Dict String (Set String) -> Dict String (Set String)
+insertCycle stack vertice recursiveCalls =
     case stack of
         x :: xs ->
-            Set.union
-                (Set.fromList (takeTop xs x vertice))
-                cycles
+            List.foldl
+                (\( functionName, reference ) acc ->
+                    Dict.update
+                        functionName
+                        (Maybe.withDefault Set.empty >> Set.insert reference >> Just)
+                        acc
+                )
+                recursiveCalls
+                (takeTop xs x vertice)
 
         [] ->
-            cycles
+            recursiveCalls
 
 
-takeTop : List a -> a -> a -> List ( a, a )
+takeTop : List String -> String -> String -> List ( String, String )
 takeTop stack previousValue stopValue =
     case stack of
         [] ->
@@ -356,7 +380,7 @@ takeTop stack previousValue stopValue =
 
         x :: xs ->
             if x /= stopValue then
-                ( x, previousValue ) :: takeTop xs x stopValue
+                ( previousValue, x ) :: takeTop xs x stopValue
 
             else
                 []
