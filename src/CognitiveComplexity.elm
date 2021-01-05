@@ -6,6 +6,7 @@ module CognitiveComplexity exposing (rule)
 
 -}
 
+import Dict
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
@@ -209,7 +210,14 @@ finalEvaluation threshold context =
         |> List.map
             (\{ functionName, complexity } ->
                 { functionName = functionName
-                , complexity = complexity
+                , complexity =
+                    complexity
+                        + (if Dict.member (Node.value functionName) Dict.empty then
+                            1
+
+                           else
+                            0
+                          )
                 }
             )
         |> List.filterMap
