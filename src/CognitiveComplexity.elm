@@ -182,20 +182,23 @@ expressionExitVisitor node context =
 declarationExitVisitor : Int -> Node Declaration -> Context -> ( List (Rule.Error {}), Context )
 declarationExitVisitor threshold node context =
     let
-        errors : List (Rule.Error {})
-        errors =
+        functionsToReport : List { functionName : Node String, complexity : Int }
+        functionsToReport =
             case Node.value node of
                 Declaration.FunctionDeclaration function ->
-                    reportComplexity threshold function context
+                    { functionName = function.declaration |> Node.value |> .name
+                    , complexity = context.complexity
+                    }
+                        :: context.functionsToReport
 
                 _ ->
-                    []
+                    context.functionsToReport
     in
-    ( errors
+    ( []
     , { complexity = 0
       , nesting = 1
       , operandsToIgnore = []
-      , functionsToReport = context.functionsToReport
+      , functionsToReport = functionsToReport
       }
     )
 
@@ -222,13 +225,19 @@ reportComplexity threshold function context =
 finalEvaluation : Int -> Context -> List (Rule.Error {})
 finalEvaluation threshold context =
     context.functionsToReport
-        |> List.map
+        |> List.filterMap
             (\{ functionName, complexity } ->
-                Rule.error
-                    { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt context.complexity ++ ", higher than the allowed " ++ String.fromInt threshold
-                    , details = [ "REPLACEME" ]
-                    }
-                    (Node.range functionName)
+                if complexity > threshold then
+                    Just
+                        (Rule.error
+                            { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt complexity ++ ", higher than the allowed " ++ String.fromInt threshold
+                            , details = [ "REPLACEME" ]
+                            }
+                            (Node.range functionName)
+                        )
+
+                else
+                    Nothing
             )
 
 
