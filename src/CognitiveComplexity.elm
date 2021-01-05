@@ -367,26 +367,40 @@ insertCycle stack vertice recursiveCalls =
                         acc
                 )
                 recursiveCalls
-                (takeTop xs x vertice
+                (takeTop xs ( x, [] ) vertice
                     |> Debug.log "takeTop"
+                    |> toTuples x
+                    |> Debug.log "toTuples"
                 )
 
         [] ->
             recursiveCalls
 
 
-takeTop : List String -> String -> String -> List ( String, String )
-takeTop stack previousValue stopValue =
+toTuples : String -> ( String, List String ) -> List ( String, String )
+toTuples x ( first, xs ) =
+    ( x, first )
+        :: (case xs of
+                [] ->
+                    []
+
+                firstofXs :: restOfXs ->
+                    toTuples first ( firstofXs, restOfXs )
+           )
+
+
+takeTop : List String -> ( String, List String ) -> String -> ( String, List String )
+takeTop stack ( previousValue, previousValues ) stopValue =
     case Debug.log ("taktop internal " ++ previousValue) stack of
         [] ->
-            []
+            ( previousValue, previousValues )
 
         x :: xs ->
             if x /= stopValue then
-                ( previousValue, x ) :: takeTop xs x stopValue
+                takeTop xs ( x, previousValue :: previousValues ) stopValue
 
             else
-                [ ( previousValue, x ) ]
+                ( previousValue, previousValues )
 
 
 
