@@ -161,19 +161,20 @@ fib n =
         0
 """
                     |> expectComplexityAt [ ( "fib", 2, { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } } ) ]
-        , test "should increment the complexity for every recursive call in a chain" <|
-            \() ->
-                """module A exposing (..)
+        , Test.only <|
+            test "should increment the complexity for every recursive call in a chain" <|
+                \() ->
+                    """module A exposing (..)
 fun1 n =    -- +1
   fun2 n
 
 fun2 n =    -- +1
   fun1 n
 """
-                    |> expectComplexityAt
-                        [ ( "fun1", 1, { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } } )
-                        , ( "fun2", 1, { start = { row = 5, column = 1 }, end = { row = 5, column = 5 } } )
-                        ]
+                        |> expectComplexityAt
+                            [ ( "fun1", 1, { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } } )
+                            , ( "fun2", 1, { start = { row = 5, column = 1 }, end = { row = 5, column = 5 } } )
+                            ]
         , test "the complexity of a function should not affect another function's computed complexity" <|
             \() ->
                 """module A exposing (..)
