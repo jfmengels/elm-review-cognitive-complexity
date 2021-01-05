@@ -50,7 +50,7 @@ elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules 
 rule : Int -> Rule
 rule threshold =
     Rule.newModuleRuleSchema "CognitiveComplexity" initialContext
-        |> Rule.withDeclarationExitVisitor (declarationExitVisitor threshold)
+        |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
         |> Rule.withFinalModuleEvaluation (finalEvaluation threshold)
@@ -179,8 +179,8 @@ expressionExitVisitor node context =
             ( [], context )
 
 
-declarationExitVisitor : Int -> Node Declaration -> Context -> ( List (Rule.Error {}), Context )
-declarationExitVisitor threshold node context =
+declarationExitVisitor : Node Declaration -> Context -> ( List (Rule.Error {}), Context )
+declarationExitVisitor node context =
     let
         functionsToReport : List { functionName : Node String, complexity : Int }
         functionsToReport =
@@ -201,25 +201,6 @@ declarationExitVisitor threshold node context =
       , functionsToReport = functionsToReport
       }
     )
-
-
-reportComplexity : Int -> Expression.Function -> Context -> List (Rule.Error {})
-reportComplexity threshold function context =
-    let
-        functionName : Node String
-        functionName =
-            function.declaration |> Node.value |> .name
-    in
-    if context.complexity > threshold then
-        [ Rule.error
-            { message = Node.value functionName ++ ": Cognitive complexity was " ++ String.fromInt context.complexity ++ ", higher than the allowed " ++ String.fromInt threshold
-            , details = [ "REPLACEME" ]
-            }
-            (Node.range functionName)
-        ]
-
-    else
-        []
 
 
 finalEvaluation : Int -> Context -> List (Rule.Error {})
