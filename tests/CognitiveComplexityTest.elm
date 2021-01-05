@@ -194,6 +194,41 @@ fun n =
                             , under = "fun"
                             }
                         ]
+        , test "should increment when find a recursive call" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    if n > 0 then           -- +1
+        1 + fun (n - 1)     -- +1
+    else
+        1
+"""
+                    |> Review.Test.run (rule -1)
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "fun: Cognitive complexity was 2, higher than the allowed -1"
+                            , details = [ "REPLACEME" ]
+                            , under = "fun"
+                            }
+                        ]
+        , test "should only increment once, even if there are multiple recursive calls" <|
+            \() ->
+                """module A exposing (..)
+fib n =
+    if n > 0 then           -- +1
+        fib (n - 1)         -- +1
+        + fib (n - 2)       -- +0
+    else
+        0
+"""
+                    |> Review.Test.run (rule -1)
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error
+                            { message = "fun: Cognitive complexity was 2, higher than the allowed -1"
+                            , details = [ "REPLACEME" ]
+                            , under = "fun"
+                            }
+                        ]
         , test "the complexity of a function should not affect another function's computed complexity" <|
             \() ->
                 """module A exposing (..)
