@@ -267,11 +267,10 @@ type VisitState
     | Done
 
 
-findCycles : Set ( String, String ) -> Set ( String, String )
+findCycles : Dict String (List String) -> Set ( String, String )
 findCycles graph =
     graph
-        |> Set.map Tuple.first
-        |> Set.toList
+        |> Dict.keys
         |> List.foldl
             (\vertice ( cycles, visited ) ->
                 let
@@ -286,7 +285,7 @@ findCycles graph =
         |> Tuple.first
 
 
-processDFSTree : Set ( String, String ) -> List String -> Visited -> ( Set ( String, String ), Visited )
+processDFSTree : Dict String (List String) -> List String -> Visited -> ( Set ( String, String ), Visited )
 processDFSTree graph stack visited =
     ( Set.empty, visited )
 
