@@ -140,9 +140,8 @@ fun n =
                 \() ->
                     """module A exposing (..)
 fun n =
-    if                  -- +1
-        a               -- +1
-        && b && c && d  -- +1
+    if                      -- +1
+        a && b && c && d    -- +1 for the usage of &&
     then
         1
     else
@@ -151,7 +150,7 @@ fun n =
                         |> Review.Test.run (rule -1)
                         |> Review.Test.expectErrors
                             [ Review.Test.error
-                                { message = "fun: Cognitive complexity was 3, higher than the allowed -1"
+                                { message = "fun: Cognitive complexity was 2, higher than the allowed -1"
                                 , details = [ "REPLACEME" ]
                                 , under = "fun"
                                 }
