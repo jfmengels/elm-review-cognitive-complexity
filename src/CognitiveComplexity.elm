@@ -63,6 +63,7 @@ type alias Context =
     { complexity : Int
     , nesting : Int
     , operandsToIgnore : List Range
+    , elseIfToIgnore : List Range
     , references : Set String
     , functionsToReport : List FunctionToReport
     }
@@ -80,6 +81,7 @@ initialContext =
     { complexity = 0
     , nesting = 1
     , operandsToIgnore = []
+    , elseIfToIgnore = []
     , references = Set.empty
     , functionsToReport = []
     }
@@ -88,13 +90,18 @@ initialContext =
 expressionEnterVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionEnterVisitor node context =
     case Node.value node of
-        Expression.IfBlock _ _ _ ->
-            ( []
-            , { context
-                | complexity = context.complexity + context.nesting
-                , nesting = context.nesting + 1
-              }
-            )
+        Expression.IfBlock _ _ else_ ->
+            if not (List.member (Node.range node) context.elseIfToIgnore) then
+                ( []
+                , { context
+                    | complexity = context.complexity + context.nesting
+                    , nesting = context.nesting + 1
+                    , elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore
+                  }
+                )
+
+            else
+                ( [], { context | elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore } )
 
         Expression.CaseExpression _ ->
             ( []
@@ -213,6 +220,7 @@ declarationExitVisitor node context =
     , { complexity = 0
       , nesting = 1
       , operandsToIgnore = []
+      , elseIfToIgnore = []
       , references = Set.empty
       , functionsToReport = functionsToReport
       }
