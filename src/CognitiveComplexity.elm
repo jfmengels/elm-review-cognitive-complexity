@@ -124,7 +124,7 @@ expressionEnterVisitor node context =
                 ( [], context )
 
         Expression.FunctionOrValue [] name ->
-            ( [], { context | references = context.references } )
+            ( [], { context | references = Set.insert name context.references } )
 
         _ ->
             ( [], context )
