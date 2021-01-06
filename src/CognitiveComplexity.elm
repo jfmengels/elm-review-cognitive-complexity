@@ -97,13 +97,7 @@ initialContext =
     , operandsToIgnore = []
     , elseIfToIgnore = []
     , references = Set.empty
-    , increases =
-        [ { line = 3
-          , increase = 1
-          , nesting = 0
-          , kind = If
-          }
-        ]
+    , increases = []
     , functionsToReport = []
     }
 
@@ -254,13 +248,7 @@ declarationExitVisitor node context =
       , operandsToIgnore = []
       , elseIfToIgnore = []
       , references = Set.empty
-      , increases =
-            [ { line = 3
-              , increase = 1
-              , nesting = 0
-              , kind = If
-              }
-            ]
+      , increases = []
       , functionsToReport = functionsToReport
       }
     )
