@@ -10,7 +10,7 @@ import Dict exposing (Dict)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
-import Elm.Syntax.Range exposing (Range)
+import Elm.Syntax.Range exposing (Location, Range)
 import Review.Rule as Rule exposing (Rule)
 import Set exposing (Set)
 
@@ -79,7 +79,7 @@ type alias FunctionToReport =
 
 
 type alias Increase =
-    { line : Int
+    { line : Location
     , increase : Int
     , nesting : Int
     , kind : IncrementKind
@@ -306,7 +306,7 @@ finalEvaluation threshold context =
 
 explain : Increase -> String
 explain increase =
-    "Line " ++ String.fromInt increase.line ++ ": +" ++ String.fromInt increase.increase ++ " for the " ++ kindToString increase.kind
+    "Line " ++ String.fromInt increase.line.row ++ ": +" ++ String.fromInt increase.increase ++ " for the " ++ kindToString increase.kind
 
 
 kindToString : IncrementKind -> String
