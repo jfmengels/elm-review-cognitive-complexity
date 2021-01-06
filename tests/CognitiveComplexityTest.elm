@@ -40,9 +40,9 @@ fun n =
                           , complexity = 10
                           , details = [ String.trim """
 Line 3: +1 for the if expression
-Line 4: +2 for the if expression
-Line 5: +3 for the if expression
-Line 6: +4 for the if expression
+Line 4: +2 for the if expression (incl 1 for nesting)
+Line 5: +3 for the if expression (incl 2 for nesting)
+Line 6: +4 for the if expression (incl 3 for nesting)
 """ ]
                           }
                         ]
@@ -162,8 +162,8 @@ fun n =
                           , complexity = 8
                           , details = [ String.trim """
 Line 3: +1 for the if expression
-Line 4: +2 for the if expression
-Line 5: +3 for the if expression
+Line 4: +2 for the if expression (incl 1 for nesting)
+Line 5: +3 for the if expression (incl 2 for nesting)
 """ ]
                           }
                         ]
@@ -244,7 +244,7 @@ fun n =
                     |> expect
                         [ { name = "fun"
                           , complexity = 2
-                          , details = [ "Line 5: +2 for the if expression" ]
+                          , details = [ "Line 5: +2 for the if expression (incl 1 for nesting)" ]
                           }
                         ]
         , test "should properly decrement the nesting when exiting an anonymous function" <|
@@ -376,7 +376,7 @@ alsoSimple n =
                           , complexity = 3
                           , details = [ String.trim """
 Line 5: +1 for the if expression
-Line 6: +2 for the if expression
+Line 6: +2 for the if expression (incl 1 for nesting)
 """ ]
                           }
                         , { name = "alsoSimple"
