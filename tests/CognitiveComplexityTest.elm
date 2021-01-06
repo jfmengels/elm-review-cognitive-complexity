@@ -247,7 +247,12 @@ Line 5: +1 for the use of &&
 fun n =
   List.map (\\m -> m + 1) n
 """
-                    |> expectComplexity [ ( "fun", 0 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 0
+                          , details = []
+                          }
+                        ]
         , test "should increment the nesting inside anonymous functions" <|
             \() ->
                 """module A exposing (..)
@@ -462,23 +467,6 @@ Line 6: +2 for the if expression (incl 1 for nesting)
         ]
 
 
-expectComplexity : List ( String, Int ) -> String -> Expectation
-expectComplexity functionComplexities source =
-    source
-        |> Review.Test.run (rule -1)
-        |> Review.Test.expectErrors
-            (List.map
-                (\( fnName, expected ) ->
-                    Review.Test.error
-                        { message = fnName ++ " has a cognitive complexity of " ++ String.fromInt expected ++ ", higher than the allowed -1"
-                        , details = [ "REPLACEME" ]
-                        , under = fnName
-                        }
-                )
-                functionComplexities
-            )
-
-
 expect : List { name : String, complexity : Int, details : List String } -> String -> Expectation
 expect functionComplexities source =
     source
@@ -491,24 +479,6 @@ expect functionComplexities source =
                         , details = "REPLACEME" :: details
                         , under = name
                         }
-                )
-                functionComplexities
-            )
-
-
-expectComplexityAt : List ( String, Int, Range ) -> String -> Expectation
-expectComplexityAt functionComplexities source =
-    source
-        |> Review.Test.run (rule -1)
-        |> Review.Test.expectErrors
-            (List.map
-                (\( fnName, expected, atExactly ) ->
-                    Review.Test.error
-                        { message = fnName ++ " has a cognitive complexity of " ++ String.fromInt expected ++ ", higher than the allowed -1"
-                        , details = [ "REPLACEME" ]
-                        , under = fnName
-                        }
-                        |> Review.Test.atExactly atExactly
                 )
                 functionComplexities
             )
