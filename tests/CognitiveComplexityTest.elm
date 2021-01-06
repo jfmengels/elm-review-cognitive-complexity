@@ -321,7 +321,7 @@ expectComplexity functionComplexities source =
             )
 
 
-expect : List { name : String, complexity : Int } -> String -> Expectation
+expect : List { name : String, complexity : Int, increases : List { line : Int, inc : Int, nesting : Int } } -> String -> Expectation
 expect functionComplexities source =
     source
         |> Review.Test.run (rule -1)
