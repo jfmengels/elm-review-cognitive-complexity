@@ -64,7 +64,7 @@ type alias Context =
     , operandsToIgnore : List Range
     , elseIfToIgnore : List Range
     , increases : List Increase
-    , references : Set String
+    , references : Dict String Location
     , functionsToReport : List FunctionToReport
     }
 
@@ -72,7 +72,7 @@ type alias Context =
 type alias FunctionToReport =
     { functionName : Node String
     , increases : List Increase
-    , references : Set String
+    , references : Dict String Location
     }
 
 
@@ -95,7 +95,7 @@ initialContext =
     { nesting = 0
     , operandsToIgnore = []
     , elseIfToIgnore = []
-    , references = Set.empty
+    , references = Dict.empty
     , increases = []
     , functionsToReport = []
     }
@@ -168,7 +168,7 @@ expressionEnterVisitor node context =
             ( [], { context | nesting = context.nesting + 1 } )
 
         Expression.FunctionOrValue [] name ->
-            ( [], { context | references = Set.insert name context.references } )
+            ( [], { context | references = Dict.insert name (Node.range node).start context.references } )
 
         _ ->
             ( [], context )
@@ -268,7 +268,7 @@ declarationExitVisitor node context =
     , { nesting = 0
       , operandsToIgnore = []
       , elseIfToIgnore = []
-      , references = Set.empty
+      , references = Dict.empty
       , increases = []
       , functionsToReport = functionsToReport
       }
@@ -288,7 +288,7 @@ finalEvaluation threshold context =
             context.functionsToReport
                 |> List.map
                     (\{ functionName, references } ->
-                        ( Node.value functionName, Set.intersect references potentialRecursiveFunctions )
+                        ( Node.value functionName, Dict.filter (\name _ -> Set.member name potentialRecursiveFunctions) references )
                     )
                 |> Dict.fromList
                 |> findRecursiveCalls
@@ -371,7 +371,7 @@ type VisitState
     | Done
 
 
-findRecursiveCalls : Dict String (Set String) -> RecursiveCalls
+findRecursiveCalls : Dict String (Dict String a) -> RecursiveCalls
 findRecursiveCalls graph =
     graph
         |> Dict.keys
@@ -402,15 +402,15 @@ mergeRecursiveCallsDict left right =
         Dict.empty
 
 
-processDFSTree : Dict String (Set String) -> List String -> Visited -> { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
+processDFSTree : Dict String (Dict String a) -> List String -> Visited -> { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
 processDFSTree graph stack visited =
     let
         vertices : List String
         vertices =
             List.head stack
                 |> Maybe.andThen (\v -> Dict.get v graph)
-                |> Maybe.withDefault Set.empty
-                |> Set.toList
+                |> Maybe.withDefault Dict.empty
+                |> Dict.keys
     in
     List.foldl
         (\vertice acc ->
