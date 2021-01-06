@@ -350,15 +350,15 @@ finalEvaluation threshold context =
                         { message = Node.value functionName ++ " has a cognitive complexity of " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
                         , details =
                             if List.isEmpty allIncreases then
-                                [ "REPLACEME" ]
+                                explanation
 
                             else
-                                [ "REPLACEME"
-                                , allIncreases
-                                    |> List.sortBy (\{ line } -> ( line.row, line.column ))
-                                    |> List.map explain
-                                    |> String.join "\n"
-                                ]
+                                explanation
+                                    ++ [ allIncreases
+                                            |> List.sortBy (\{ line } -> ( line.row, line.column ))
+                                            |> List.map explain
+                                            |> String.join "\n"
+                                       ]
                         }
                         (Node.range functionName)
                     )
@@ -367,6 +367,13 @@ finalEvaluation threshold context =
                 Nothing
         )
         context.functionsToReport
+
+
+explanation : List String
+explanation =
+    [ "This metric is a heuristic to measure how easy to understand a piece of code is, primarily through increments for breaks in the linear flow and for nesting those breaks."
+    , "The most common ways to reduce complexity is to extract section into methods and to unnest control flow structures. Following is a breakdown of where complexity was found:"
+    ]
 
 
 explain : Increase -> String

@@ -476,7 +476,7 @@ expect functionComplexities source =
                 (\{ name, complexity, details } ->
                     Review.Test.error
                         { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed -1"
-                        , details = "REPLACEME" :: details
+                        , details = explanation ++ details
                         , under = name
                         }
                 )
@@ -493,10 +493,17 @@ expectAtExactly functionComplexities source =
                 (\{ name, complexity, details, atExactly } ->
                     Review.Test.error
                         { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed -1"
-                        , details = "REPLACEME" :: details
+                        , details = explanation ++ details
                         , under = name
                         }
                         |> Review.Test.atExactly atExactly
                 )
                 functionComplexities
             )
+
+
+explanation : List String
+explanation =
+    [ "This metric is a heuristic to measure how easy to understand a piece of code is, primarily through increments for breaks in the linear flow and for nesting those breaks."
+    , "The most common ways to reduce complexity is to extract section into methods and to unnest control flow structures. Following is a breakdown of where complexity was found:"
+    ]
