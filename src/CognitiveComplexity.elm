@@ -267,7 +267,7 @@ finalEvaluation threshold context =
                 Just
                     (Rule.error
                         { message = Node.value functionName ++ " has a cognitive complexity of " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
-                        , details = [ "REPLACEME" ]
+                        , details = [ "REPLACEME", "Line 3: +1 for the if expression" ]
                         }
                         (Node.range functionName)
                     )
