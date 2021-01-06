@@ -414,7 +414,6 @@ type VisitState
 findRecursiveCalls : Dict String (Dict String Location) -> RecursiveCalls
 findRecursiveCalls graph =
     graph
-        |> Debug.log "graph"
         |> Dict.keys
         |> List.foldl
             (\vertice ( recursiveCalls, visited ) ->
@@ -452,13 +451,19 @@ processDFSTree graph stack visited =
                 |> Maybe.andThen (\v -> Dict.get v graph)
                 |> Maybe.withDefault Dict.empty
                 |> Dict.toList
-                |> Debug.log "\nvertices"
     in
     List.foldl
         (\( vertice, location ) acc ->
             case Dict.get vertice visited of
                 Just InStack ->
-                    { acc | recursiveCalls = insertCycle stack ( vertice, location ) acc.recursiveCalls }
+                    { acc
+                        | recursiveCalls =
+                            insertCycle
+                                (Dict.get vertice graph |> Maybe.withDefault Dict.empty)
+                                stack
+                                ( vertice, location )
+                                acc.recursiveCalls
+                    }
 
                 Just Done ->
                     acc
@@ -487,16 +492,21 @@ processDFSTree graph stack visited =
            )
 
 
-insertCycle : List String -> ( String, Location ) -> RecursiveCalls -> RecursiveCalls
-insertCycle stack ( vertice, location ) recursiveCalls =
+insertCycle : Dict String Location -> List String -> ( String, Location ) -> RecursiveCalls -> RecursiveCalls
+insertCycle adjacentsToVertice stack ( vertice, location_ ) recursiveCalls =
     case stack of
         x :: xs ->
             List.foldl
                 (\( functionName, reference ) acc ->
-                    Dict.update
-                        functionName
-                        (Maybe.withDefault Dict.empty >> Dict.insert reference location >> Just)
-                        acc
+                    case Dict.get reference adjacentsToVertice of
+                        Just location ->
+                            Dict.update
+                                functionName
+                                (Maybe.withDefault Dict.empty >> Dict.insert reference location >> Just)
+                                acc
+
+                        Nothing ->
+                            acc
                 )
                 recursiveCalls
                 (takeTop xs ( x, [] ) vertice
