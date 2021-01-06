@@ -60,8 +60,7 @@ rule threshold =
 
 
 type alias Context =
-    { complexity : Int
-    , nesting : Int
+    { nesting : Int
     , operandsToIgnore : List Range
     , elseIfToIgnore : List Range
     , increases : List Increase
@@ -72,7 +71,6 @@ type alias Context =
 
 type alias FunctionToReport =
     { functionName : Node String
-    , complexity : Int
     , increases : List Increase
     , references : Set String
     }
@@ -94,8 +92,7 @@ type IncrementKind
 
 initialContext : Context
 initialContext =
-    { complexity = 0
-    , nesting = 0
+    { nesting = 0
     , operandsToIgnore = []
     , elseIfToIgnore = []
     , references = Set.empty
@@ -111,8 +108,7 @@ expressionEnterVisitor node context =
             if not (List.member (Node.range node) context.elseIfToIgnore) then
                 ( []
                 , { context
-                    | complexity = context.complexity + context.nesting + 1
-                    , increases =
+                    | increases =
                         { line = (Node.range node).start
                         , increase = context.nesting + 1
                         , nesting = context.nesting
@@ -130,8 +126,7 @@ expressionEnterVisitor node context =
         Expression.CaseExpression _ ->
             ( []
             , { context
-                | complexity = context.complexity + context.nesting + 1
-                , increases =
+                | increases =
                     { line = (Node.range node).start
                     , increase = context.nesting + 1
                     , nesting = context.nesting
@@ -154,10 +149,7 @@ expressionEnterVisitor node context =
                 in
                 ( []
                 , { context
-                    | complexity = context.complexity + List.sum (List.map .increase increases) + 1
-
-                    -- TODO add an additional increase here for this node
-                    , increases =
+                    | increases =
                         { line = (Node.range node).start
                         , increase = 1
                         , nesting = 0
@@ -264,7 +256,6 @@ declarationExitVisitor node context =
             case Node.value node of
                 Declaration.FunctionDeclaration function ->
                     { functionName = function.declaration |> Node.value |> .name
-                    , complexity = context.complexity
                     , increases = context.increases
                     , references = context.references
                     }
@@ -274,8 +265,7 @@ declarationExitVisitor node context =
                     context.functionsToReport
     in
     ( []
-    , { complexity = 0
-      , nesting = 0
+    , { nesting = 0
       , operandsToIgnore = []
       , elseIfToIgnore = []
       , references = Set.empty
@@ -305,7 +295,7 @@ finalEvaluation threshold context =
                 |> Dict.map (\_ recursiveFunctions -> Set.size recursiveFunctions)
     in
     List.filterMap
-        (\{ functionName, complexity, increases } ->
+        (\{ functionName, increases } ->
             let
                 finalComplexity : Int
                 finalComplexity =
