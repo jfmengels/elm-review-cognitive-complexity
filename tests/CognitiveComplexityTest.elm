@@ -321,6 +321,23 @@ expectComplexity functionComplexities source =
             )
 
 
+expect : List { name : String, complexity : Int } -> String -> Expectation
+expect functionComplexities source =
+    source
+        |> Review.Test.run (rule -1)
+        |> Review.Test.expectErrors
+            (List.map
+                (\{ name, complexity } ->
+                    Review.Test.error
+                        { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed -1"
+                        , details = [ "REPLACEME" ]
+                        , under = name
+                        }
+                )
+                functionComplexities
+            )
+
+
 expectComplexityAt : List ( String, Int, Range ) -> String -> Expectation
 expectComplexityAt functionComplexities source =
     source
