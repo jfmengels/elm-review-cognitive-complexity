@@ -170,7 +170,18 @@ expressionEnterVisitor node context =
             ( [], { context | nesting = context.nesting + 1 } )
 
         Expression.FunctionOrValue [] name ->
-            ( [], { context | references = Dict.insert name (Node.range node).start context.references } )
+            ( []
+            , { context
+                | references =
+                    if Dict.member name context.references then
+                        -- The reference already exists, and we want to keep the first reference
+                        -- for a better presentation
+                        context.references
+
+                    else
+                        Dict.insert name (Node.range node).start context.references
+              }
+            )
 
         _ ->
             ( [], context )
