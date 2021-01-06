@@ -93,7 +93,7 @@ type IncrementKind
 initialContext : Context
 initialContext =
     { complexity = 0
-    , nesting = 1
+    , nesting = 0
     , operandsToIgnore = []
     , elseIfToIgnore = []
     , references = Set.empty
@@ -109,10 +109,10 @@ expressionEnterVisitor node context =
             if not (List.member (Node.range node) context.elseIfToIgnore) then
                 ( []
                 , { context
-                    | complexity = context.complexity + context.nesting
+                    | complexity = context.complexity + context.nesting + 1
                     , increases =
                         { line = (Node.range node).start
-                        , increase = context.nesting
+                        , increase = context.nesting + 1
                         , nesting = context.nesting
                         , kind = If
                         }
@@ -128,7 +128,7 @@ expressionEnterVisitor node context =
         Expression.CaseExpression _ ->
             ( []
             , { context
-                | complexity = context.complexity + context.nesting
+                | complexity = context.complexity + context.nesting + 1
                 , nesting = context.nesting + 1
               }
             )
@@ -251,7 +251,7 @@ declarationExitVisitor node context =
     in
     ( []
     , { complexity = 0
-      , nesting = 1
+      , nesting = 0
       , operandsToIgnore = []
       , elseIfToIgnore = []
       , references = Set.empty
@@ -314,7 +314,16 @@ finalEvaluation threshold context =
 
 explain : Increase -> String
 explain increase =
-    "Line " ++ String.fromInt increase.line.row ++ ": +" ++ String.fromInt increase.increase ++ " for the " ++ kindToString increase.kind
+    "Line " ++ String.fromInt increase.line.row ++ ": +" ++ String.fromInt increase.increase ++ " for the " ++ kindToString increase.kind ++ mentionNesting increase.nesting
+
+
+mentionNesting : Int -> String
+mentionNesting nesting =
+    if nesting == 0 then
+        ""
+
+    else
+        " (incl " ++ String.fromInt nesting ++ " for nesting)"
 
 
 kindToString : IncrementKind -> String
