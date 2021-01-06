@@ -63,8 +63,7 @@ fun n =
                         [ { name = "fun"
                           , complexity = 1
                           , details =
-                                [ "REPLACEME"
-                                , String.trim """
+                                [ String.trim """
 Line 3: +1 for the if expression
 """
                                 ]
@@ -340,7 +339,7 @@ expect functionComplexities source =
                 (\{ name, complexity, details } ->
                     Review.Test.error
                         { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed -1"
-                        , details = details
+                        , details = "REPLACEME" :: details
                         , under = name
                         }
                 )
