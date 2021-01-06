@@ -59,7 +59,17 @@ fun n =
     else
       2
 """
-                    |> expectComplexity [ ( "fun", 1 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 1
+                          , details =
+                                [ "REPLACEME"
+                                , String.trim """
+Line 3: +1 for the if expression
+"""
+                                ]
+                          }
+                        ]
         , test "should not count if else expressions" <|
             \() ->
                 """module A exposing (..)
