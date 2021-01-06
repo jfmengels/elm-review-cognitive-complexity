@@ -321,7 +321,7 @@ fib n =
                           , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } }
                           , details = [ String.trim """
 Line 3: +1 for the if expression
-Line 5: +1 for the recursive call
+Line 4: +1 for the recursive call
 """ ]
                           }
                         ]
@@ -339,7 +339,7 @@ fun2 n =    -- +1
                           , complexity = 1
                           , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } }
                           , details = [ String.trim """
-Line 6: +1 for the indirect recursive call to fun2
+Line 3: +1 for the indirect recursive call to fun2
 """ ]
                           }
                         , { name = "fun2"
@@ -367,11 +367,9 @@ fun2 n =
                           , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } }
                           , details =
                                 [ String.trim """
+Line 3: +1 for the indirect recursive call to fun2
 Line 5: +1 for the recursive call
-Line 8: +1 for the indirect recursive call to fun2
 """
-
-                                -- TODO Fix incorrect location, shouldn't be line 8
                                 ]
                           }
                         , { name = "fun2"
@@ -401,22 +399,22 @@ fun5 n =
                         [ { name = "fun1"
                           , complexity = 1
                           , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } }
-                          , details = [ "Line 11: +1 for the indirect recursive call to fun2" ]
+                          , details = [ "Line 3: +1 for the indirect recursive call to fun2" ]
                           }
                         , { name = "fun2"
                           , complexity = 1
                           , atExactly = { start = { row = 4, column = 1 }, end = { row = 4, column = 5 } }
-                          , details = [ "Line 11: +1 for the indirect recursive call to fun3" ]
+                          , details = [ "Line 5: +1 for the indirect recursive call to fun3" ]
                           }
                         , { name = "fun3"
                           , complexity = 1
                           , atExactly = { start = { row = 6, column = 1 }, end = { row = 6, column = 5 } }
-                          , details = [ "Line 11: +1 for the indirect recursive call to fun4" ]
+                          , details = [ "Line 7: +1 for the indirect recursive call to fun4" ]
                           }
                         , { name = "fun4"
                           , complexity = 1
                           , atExactly = { start = { row = 8, column = 1 }, end = { row = 8, column = 5 } }
-                          , details = [ "Line 11: +1 for the indirect recursive call to fun5" ]
+                          , details = [ "Line 9: +1 for the indirect recursive call to fun5" ]
                           }
                         , { name = "fun5"
                           , complexity = 1

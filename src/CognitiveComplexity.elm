@@ -307,15 +307,24 @@ finalEvaluation threshold context =
                 |> findRecursiveCalls
     in
     List.filterMap
-        (\{ functionName, increases } ->
+        (\{ functionName, increases, references } ->
             let
+                recursiveCallsForFunctionName : List String
+                recursiveCallsForFunctionName =
+                    Dict.get (Node.value functionName) recursiveCalls
+                        |> Maybe.withDefault Set.empty
+                        |> Set.toList
+
                 allIncreases : List Increase
                 allIncreases =
                     List.concat
                         [ increases
-                        , Dict.get (Node.value functionName) recursiveCalls
-                            |> Maybe.map Dict.toList
-                            |> Maybe.withDefault []
+                        , recursiveCallsForFunctionName
+                            |> List.filterMap
+                                (\referenceToRecursiveFunction ->
+                                    Dict.get referenceToRecursiveFunction references
+                                        |> Maybe.map (Tuple.pair referenceToRecursiveFunction)
+                                )
                             |> List.map
                                 (\( reference, location ) ->
                                     { line = location
@@ -399,7 +408,7 @@ kindToString kind =
 
 
 type alias RecursiveCalls =
-    Dict String (Dict String Location)
+    Dict String (Set String)
 
 
 type alias Visited =
@@ -411,7 +420,7 @@ type VisitState
     | Done
 
 
-findRecursiveCalls : Dict String (Dict String Location) -> RecursiveCalls
+findRecursiveCalls : Dict String (Dict String a) -> RecursiveCalls
 findRecursiveCalls graph =
     graph
         |> Dict.keys
@@ -435,35 +444,28 @@ mergeRecursiveCallsDict : RecursiveCalls -> RecursiveCalls -> RecursiveCalls
 mergeRecursiveCallsDict left right =
     Dict.merge
         (\functionName calls dict -> Dict.insert functionName calls dict)
-        (\functionName callsLeft callsRight dict -> Dict.insert functionName (Dict.union callsLeft callsRight) dict)
+        (\functionName callsLeft callsRight dict -> Dict.insert functionName (Set.union callsLeft callsRight) dict)
         (\functionName calls dict -> Dict.insert functionName calls dict)
         left
         right
         Dict.empty
 
 
-processDFSTree : Dict String (Dict String Location) -> List String -> Visited -> { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
+processDFSTree : Dict String (Dict String a) -> List String -> Visited -> { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
 processDFSTree graph stack visited =
     let
-        vertices : List ( String, Location )
+        vertices : List String
         vertices =
             List.head stack
                 |> Maybe.andThen (\v -> Dict.get v graph)
                 |> Maybe.withDefault Dict.empty
-                |> Dict.toList
+                |> Dict.keys
     in
     List.foldl
-        (\( vertice, location ) acc ->
+        (\vertice acc ->
             case Dict.get vertice visited of
                 Just InStack ->
-                    { acc
-                        | recursiveCalls =
-                            insertCycle
-                                (Dict.get vertice graph |> Maybe.withDefault Dict.empty)
-                                stack
-                                ( vertice, location )
-                                acc.recursiveCalls
-                    }
+                    { acc | recursiveCalls = insertCycle stack vertice acc.recursiveCalls }
 
                 Just Done ->
                     acc
@@ -492,21 +494,16 @@ processDFSTree graph stack visited =
            )
 
 
-insertCycle : Dict String Location -> List String -> ( String, Location ) -> RecursiveCalls -> RecursiveCalls
-insertCycle adjacentsToVertice stack ( vertice, location_ ) recursiveCalls =
+insertCycle : List String -> String -> RecursiveCalls -> RecursiveCalls
+insertCycle stack vertice recursiveCalls =
     case stack of
         x :: xs ->
             List.foldl
                 (\( functionName, reference ) acc ->
-                    case Dict.get reference adjacentsToVertice of
-                        Just location ->
-                            Dict.update
-                                functionName
-                                (Maybe.withDefault Dict.empty >> Dict.insert reference location >> Just)
-                                acc
-
-                        Nothing ->
-                            acc
+                    Dict.update
+                        functionName
+                        (Maybe.withDefault Set.empty >> Set.insert reference >> Just)
+                        acc
                 )
                 recursiveCalls
                 (takeTop xs ( x, [] ) vertice
