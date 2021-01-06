@@ -64,6 +64,7 @@ type alias Context =
     , nesting : Int
     , operandsToIgnore : List Range
     , elseIfToIgnore : List Range
+    , increases : List Increase
     , references : Set String
     , functionsToReport : List FunctionToReport
     }
@@ -96,6 +97,13 @@ initialContext =
     , operandsToIgnore = []
     , elseIfToIgnore = []
     , references = Set.empty
+    , increases =
+        [ { line = 3
+          , increase = 1
+          , nesting = 0
+          , kind = If
+          }
+        ]
     , functionsToReport = []
     }
 
@@ -232,13 +240,7 @@ declarationExitVisitor node context =
                 Declaration.FunctionDeclaration function ->
                     { functionName = function.declaration |> Node.value |> .name
                     , complexity = context.complexity
-                    , increases =
-                        [ { line = 3
-                          , increase = 1
-                          , nesting = 0
-                          , kind = If
-                          }
-                        ]
+                    , increases = context.increases
                     , references = context.references
                     }
                         :: context.functionsToReport
@@ -252,6 +254,13 @@ declarationExitVisitor node context =
       , operandsToIgnore = []
       , elseIfToIgnore = []
       , references = Set.empty
+      , increases =
+            [ { line = 3
+              , increase = 1
+              , nesting = 0
+              , kind = If
+              }
+            ]
       , functionsToReport = functionsToReport
       }
     )
