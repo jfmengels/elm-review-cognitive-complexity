@@ -110,6 +110,13 @@ expressionEnterVisitor node context =
                 ( []
                 , { context
                     | complexity = context.complexity + context.nesting
+                    , increases =
+                        { line = (Node.range node).start
+                        , increase = context.complexity + context.nesting
+                        , nesting = context.nesting
+                        , kind = If
+                        }
+                            :: context.increases
                     , nesting = context.nesting + 1
                     , elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore
                   }
