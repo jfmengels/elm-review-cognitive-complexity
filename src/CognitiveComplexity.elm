@@ -541,5 +541,7 @@ takeTop stack ( previousValue, previousValues ) stopValue =
 
 
 
--- TODO Add error details explaining how to simplify
--- TODO Add documentation
+{- TODO Add error details explaining how to simplify
+   - Collapse conditions
+   - Extract to methods
+-}
