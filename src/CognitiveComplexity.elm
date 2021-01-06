@@ -72,8 +72,13 @@ type alias Context =
 type alias FunctionToReport =
     { functionName : Node String
     , complexity : Int
+    , increases : List { increase : Int, nesting : Int, kind : IncrementKind }
     , references : Set String
     }
+
+
+type IncrementKind
+    = If
 
 
 initialContext : Context
@@ -219,6 +224,7 @@ declarationExitVisitor node context =
                 Declaration.FunctionDeclaration function ->
                     { functionName = function.declaration |> Node.value |> .name
                     , complexity = context.complexity
+                    , increases = []
                     , references = context.references
                     }
                         :: context.functionsToReport
