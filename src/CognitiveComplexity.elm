@@ -72,8 +72,16 @@ type alias Context =
 type alias FunctionToReport =
     { functionName : Node String
     , complexity : Int
-    , increases : List { increase : Int, nesting : Int, kind : IncrementKind }
+    , increases : List Increase
     , references : Set String
+    }
+
+
+type alias Increase =
+    { line : Int
+    , increase : Int
+    , nesting : Int
+    , kind : IncrementKind
     }
 
 
@@ -224,7 +232,13 @@ declarationExitVisitor node context =
                 Declaration.FunctionDeclaration function ->
                     { functionName = function.declaration |> Node.value |> .name
                     , complexity = context.complexity
-                    , increases = []
+                    , increases =
+                        [ { line = 3
+                          , increase = 1
+                          , nesting = 0
+                          , kind = If
+                          }
+                        ]
                     , references = context.references
                     }
                         :: context.functionsToReport
@@ -263,7 +277,7 @@ finalEvaluation threshold context =
                 |> Dict.map (\_ recursiveFunctions -> Set.size recursiveFunctions)
     in
     List.filterMap
-        (\{ functionName, complexity } ->
+        (\{ functionName, complexity, increases } ->
             let
                 finalComplexity : Int
                 finalComplexity =
@@ -273,7 +287,12 @@ finalEvaluation threshold context =
                 Just
                     (Rule.error
                         { message = Node.value functionName ++ " has a cognitive complexity of " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
-                        , details = [ "REPLACEME", "Line 3: +1 for the if expression" ]
+                        , details =
+                            [ "REPLACEME"
+                            , increases
+                                |> List.map explain
+                                |> String.join "\n"
+                            ]
                         }
                         (Node.range functionName)
                     )
@@ -282,6 +301,18 @@ finalEvaluation threshold context =
                 Nothing
         )
         context.functionsToReport
+
+
+explain : Increase -> String
+explain increase =
+    "Line " ++ String.fromInt increase.line ++ ": +" ++ String.fromInt increase.increase ++ " for the " ++ kindToString increase.kind
+
+
+kindToString : IncrementKind -> String
+kindToString kind =
+    case kind of
+        If ->
+            "if expression"
 
 
 
