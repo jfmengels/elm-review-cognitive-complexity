@@ -291,6 +291,7 @@ finalEvaluation threshold context =
                             else
                                 [ "REPLACEME"
                                 , increases
+                                    |> List.sortBy (\{ line } -> ( line.row, line.column ))
                                     |> List.map explain
                                     |> String.join "\n"
                                 ]
