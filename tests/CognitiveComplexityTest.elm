@@ -334,9 +334,21 @@ fun1 n =    -- +1
 fun2 n =    -- +1
   fun1 n
 """
-                    |> expectComplexityAt
-                        [ ( "fun1", 1, { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } } )
-                        , ( "fun2", 1, { start = { row = 5, column = 1 }, end = { row = 5, column = 5 } } )
+                    |> expectAtExactly
+                        [ { name = "fun1"
+                          , complexity = 1
+                          , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } }
+                          , details = [ String.trim """
+Line 6: +1 for the indirect recursive call to fun2
+""" ]
+                          }
+                        , { name = "fun2"
+                          , complexity = 1
+                          , atExactly = { start = { row = 5, column = 1 }, end = { row = 5, column = 5 } }
+                          , details = [ String.trim """
+Line 6: +1 for the indirect recursive call to fun1
+""" ]
+                          }
                         ]
         , test "should increment the complexity for every recursive call in a chain, for each different function call" <|
             \() ->
@@ -349,9 +361,26 @@ fun1 n =
 fun2 n =
   fun1 n    -- +1
 """
-                    |> expectComplexityAt
-                        [ ( "fun1", 2, { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } } )
-                        , ( "fun2", 1, { start = { row = 7, column = 1 }, end = { row = 7, column = 5 } } )
+                    |> expectAtExactly
+                        [ { name = "fun1"
+                          , complexity = 2
+                          , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } }
+                          , details =
+                                [ String.trim """
+Line 5: +1 for the recursive call
+Line 8: +1 for the indirect recursive call to fun2
+"""
+
+                                -- TODO Fix incorrect location, shouldn't be line 8
+                                ]
+                          }
+                        , { name = "fun2"
+                          , complexity = 1
+                          , atExactly = { start = { row = 7, column = 1 }, end = { row = 7, column = 5 } }
+                          , details = [ String.trim """
+Line 8: +1 for the indirect recursive call to fun1
+""" ]
+                          }
                         ]
         , test "should increment the complexity for every recursive call in a chain, for long chains" <|
             \() ->
@@ -367,12 +396,33 @@ fun4 n =
 fun5 n =
   fun1 n    -- +1
 """
-                    |> expectComplexityAt
-                        [ ( "fun1", 1, { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } } )
-                        , ( "fun2", 1, { start = { row = 4, column = 1 }, end = { row = 4, column = 5 } } )
-                        , ( "fun3", 1, { start = { row = 6, column = 1 }, end = { row = 6, column = 5 } } )
-                        , ( "fun4", 1, { start = { row = 8, column = 1 }, end = { row = 8, column = 5 } } )
-                        , ( "fun5", 1, { start = { row = 10, column = 1 }, end = { row = 10, column = 5 } } )
+                    |> expectAtExactly
+                        -- TODO Fix line numbers
+                        [ { name = "fun1"
+                          , complexity = 1
+                          , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } }
+                          , details = [ "Line 11: +1 for the indirect recursive call to fun2" ]
+                          }
+                        , { name = "fun2"
+                          , complexity = 1
+                          , atExactly = { start = { row = 4, column = 1 }, end = { row = 4, column = 5 } }
+                          , details = [ "Line 11: +1 for the indirect recursive call to fun3" ]
+                          }
+                        , { name = "fun3"
+                          , complexity = 1
+                          , atExactly = { start = { row = 6, column = 1 }, end = { row = 6, column = 5 } }
+                          , details = [ "Line 11: +1 for the indirect recursive call to fun4" ]
+                          }
+                        , { name = "fun4"
+                          , complexity = 1
+                          , atExactly = { start = { row = 8, column = 1 }, end = { row = 8, column = 5 } }
+                          , details = [ "Line 11: +1 for the indirect recursive call to fun5" ]
+                          }
+                        , { name = "fun5"
+                          , complexity = 1
+                          , atExactly = { start = { row = 10, column = 1 }, end = { row = 10, column = 5 } }
+                          , details = [ "Line 11: +1 for the indirect recursive call to fun1" ]
+                          }
                         ]
         , test "the complexity of a function should not affect another function's computed complexity" <|
             \() ->
