@@ -403,6 +403,7 @@ type VisitState
 findRecursiveCalls : Dict String (Dict String Location) -> RecursiveCalls
 findRecursiveCalls graph =
     graph
+        |> Debug.log "graph"
         |> Dict.keys
         |> List.foldl
             (\vertice ( recursiveCalls, visited ) ->
@@ -440,6 +441,7 @@ processDFSTree graph stack visited =
                 |> Maybe.andThen (\v -> Dict.get v graph)
                 |> Maybe.withDefault Dict.empty
                 |> Dict.toList
+                |> Debug.log "\nvertices"
     in
     List.foldl
         (\( vertice, location ) acc ->
