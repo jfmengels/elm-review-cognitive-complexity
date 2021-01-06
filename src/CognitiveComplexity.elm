@@ -329,7 +329,7 @@ finalEvaluation threshold context =
                     (Rule.error
                         { message = Node.value functionName ++ " has a cognitive complexity of " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
                         , details =
-                            if List.isEmpty increases then
+                            if List.isEmpty allIncreases then
                                 [ "REPLACEME" ]
 
                             else
@@ -379,7 +379,7 @@ kindToString kind =
             "recursive call"
 
         IndirectRecursiveCall fnName ->
-            "indirect recursive call to" ++ fnName
+            "indirect recursive call to " ++ fnName
 
 
 
