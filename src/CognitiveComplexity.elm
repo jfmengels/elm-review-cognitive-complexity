@@ -395,7 +395,7 @@ kindToString kind =
 
 
 -- FINDING RECURSIVE FUNCTIONS
--- Algorithm found at https://www.baeldung.com/cs/detecting-recursiveCalls-in-directed-graph
+-- Inspired by the algorithm found at https://www.baeldung.com/cs/detecting-recursiveCalls-in-directed-graph
 
 
 type alias RecursiveCalls =
