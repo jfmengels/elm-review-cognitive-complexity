@@ -88,6 +88,8 @@ type IncrementKind
     = If
     | Case
     | Operator String
+    | RecursiveCall
+    | IndirectRecursiveCall String
 
 
 initialContext : Context
@@ -283,8 +285,8 @@ finalEvaluation threshold context =
             List.map (.functionName >> Node.value) context.functionsToReport
                 |> Set.fromList
 
-        numberOfDifferentRecursiveCalls : Dict String Int
-        numberOfDifferentRecursiveCalls =
+        recursiveCalls : RecursiveCalls
+        recursiveCalls =
             context.functionsToReport
                 |> List.map
                     (\{ functionName, references } ->
@@ -292,14 +294,35 @@ finalEvaluation threshold context =
                     )
                 |> Dict.fromList
                 |> findRecursiveCalls
-                |> Dict.map (\_ recursiveFunctions -> Dict.size recursiveFunctions)
     in
     List.filterMap
         (\{ functionName, increases } ->
             let
+                allIncreases : List Increase
+                allIncreases =
+                    List.concat
+                        [ increases
+                        , Dict.get (Node.value functionName) recursiveCalls
+                            |> Maybe.map Dict.toList
+                            |> Maybe.withDefault []
+                            |> List.map
+                                (\( reference, location ) ->
+                                    { line = location
+                                    , increase = 1
+                                    , nesting = 0
+                                    , kind =
+                                        if Node.value functionName == reference then
+                                            RecursiveCall
+
+                                        else
+                                            IndirectRecursiveCall reference
+                                    }
+                                )
+                        ]
+
                 finalComplexity : Int
                 finalComplexity =
-                    List.sum (List.map .increase increases) + (Dict.get (Node.value functionName) numberOfDifferentRecursiveCalls |> Maybe.withDefault 0)
+                    List.sum (List.map .increase allIncreases)
             in
             if finalComplexity > threshold then
                 Just
@@ -311,7 +334,7 @@ finalEvaluation threshold context =
 
                             else
                                 [ "REPLACEME"
-                                , increases
+                                , allIncreases
                                     |> List.sortBy (\{ line } -> ( line.row, line.column ))
                                     |> List.map explain
                                     |> String.join "\n"
@@ -351,6 +374,12 @@ kindToString kind =
 
         Operator operator ->
             "use of " ++ operator
+
+        RecursiveCall ->
+            "recursive call"
+
+        IndirectRecursiveCall fnName ->
+            "indirect recursive call to" ++ fnName
 
 
 

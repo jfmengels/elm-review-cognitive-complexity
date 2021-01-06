@@ -286,7 +286,7 @@ fun n =
                           , details = [ "Line 6: +1 for the if expression" ]
                           }
                         ]
-        , test "should increment when find a recursive call" <|
+        , test "should increment when finding a recursive call" <|
             \() ->
                 """module A exposing (..)
 fun n =
@@ -299,7 +299,10 @@ fun n =
                         [ { name = "fun"
                           , complexity = 2
                           , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } }
-                          , details = [ "Line 3: +1 for the if expression" ]
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+Line 4: +1 for the recursive call
+""" ]
                           }
                         ]
         , test "should only increment once, even if there are multiple recursive calls" <|
@@ -316,7 +319,10 @@ fib n =
                         [ { name = "fib"
                           , complexity = 2
                           , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } }
-                          , details = [ "Line 3: +1 for the if expression" ]
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+Line 5: +1 for the recursive call
+""" ]
                           }
                         ]
         , test "should increment the complexity for every recursive call in a chain" <|
