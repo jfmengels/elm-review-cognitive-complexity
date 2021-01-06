@@ -65,11 +65,7 @@ fun n =
                     |> expect
                         [ { name = "fun"
                           , complexity = 1
-                          , details =
-                                [ String.trim """
-Line 3: +1 for the if expression
-"""
-                                ]
+                          , details = [ "Line 3: +1 for the if expression" ]
                           }
                         ]
         , test "should not count if else expressions" <|
@@ -127,7 +123,12 @@ fun n =
       4 -> ()
       _ -> ()
 """
-                    |> expectComplexity [ ( "fun", 1 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 1
+                          , details = [ "Line 3: +1 for the case expression" ]
+                          }
+                        ]
         , test "should count nesting of case expressions" <|
             \() ->
                 """module A exposing (..)
@@ -140,7 +141,15 @@ fun n =
       4 -> ()
       _ -> ()
 """
-                    |> expectComplexity [ ( "fun", 3 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 3
+                          , details = [ String.trim """
+Line 3: +1 for the case expression
+Line 6: +2 for the case expression (incl 1 for nesting)
+""" ]
+                          }
+                        ]
         , test "should decrement the nesting when leaving a nested structure" <|
             \() ->
                 """module A exposing (..)
@@ -164,6 +173,7 @@ fun n =
 Line 3: +1 for the if expression
 Line 4: +2 for the if expression (incl 1 for nesting)
 Line 5: +3 for the if expression (incl 2 for nesting)
+Line 12: +2 for the case expression (incl 1 for nesting)
 """ ]
                           }
                         ]

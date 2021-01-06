@@ -88,6 +88,7 @@ type alias Increase =
 
 type IncrementKind
     = If
+    | Case
 
 
 initialContext : Context
@@ -129,6 +130,13 @@ expressionEnterVisitor node context =
             ( []
             , { context
                 | complexity = context.complexity + context.nesting + 1
+                , increases =
+                    { line = (Node.range node).start
+                    , increase = context.nesting + 1
+                    , nesting = context.nesting
+                    , kind = Case
+                    }
+                        :: context.increases
                 , nesting = context.nesting + 1
               }
             )
@@ -331,6 +339,9 @@ kindToString kind =
     case kind of
         If ->
             "if expression"
+
+        Case ->
+            "case expression"
 
 
 
