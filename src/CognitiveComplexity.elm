@@ -112,7 +112,7 @@ expressionEnterVisitor node context =
                     | complexity = context.complexity + context.nesting
                     , increases =
                         { line = (Node.range node).start
-                        , increase = context.complexity + context.nesting
+                        , increase = context.nesting
                         , nesting = context.nesting
                         , kind = If
                         }

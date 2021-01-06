@@ -35,13 +35,16 @@ fun n =
     else
       2
 """
-                    |> Review.Test.run (rule -1)
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "fun has a cognitive complexity of 10, higher than the allowed -1"
-                            , details = [ "REPLACEME" ]
-                            , under = "fun"
-                            }
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 10
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+Line 4: +2 for the if expression
+Line 5: +3 for the if expression
+Line 6: +4 for the if expression
+""" ]
+                          }
                         ]
         , test "should count a simple value or operation as 0" <|
             \() ->
@@ -49,7 +52,7 @@ fun n =
 fun n =
     n + 1
 """
-                    |> expect [ { name = "fun", complexity = 0, details = [ "REPLACEME" ] } ]
+                    |> expect [ { name = "fun", complexity = 0, details = [] } ]
         , test "should count if expression as 1" <|
             \() ->
                 """module A exposing (..)
@@ -80,7 +83,12 @@ fun n =
     else
       2
 """
-                    |> expectComplexity [ ( "fun", 1 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 1
+                          , details = [ "Line 3: +1 for the if expression" ]
+                          }
+                        ]
         , test "should properly decrement when exiting else expression" <|
             \() ->
                 """module A exposing (..)
@@ -99,7 +107,15 @@ fun n =
   else
     5
 """
-                    |> expectComplexity [ ( "fun", 2 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 2
+                          , details = [ String.trim """
+Line 5: +1 for the if expression
+Line 12: +1 for the if expression
+""" ]
+                          }
+                        ]
         , test "should count case expression as 1" <|
             \() ->
                 """module A exposing (..)
@@ -141,7 +157,16 @@ fun n =
       case n of         -- +2
         () -> ()
 """
-                    |> expectComplexity [ ( "fun", 8 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 8
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+Line 4: +2 for the if expression
+Line 5: +3 for the if expression
+""" ]
+                          }
+                        ]
         , test "should increment once when using the && boolean operator" <|
             \() ->
                 """module A exposing (..)
@@ -153,7 +178,12 @@ fun n =
     else
         2
 """
-                    |> expectComplexity [ ( "fun", 2 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 2
+                          , details = [ "Line 3: +1 for the if expression" ]
+                          }
+                        ]
         , test "should increment once when using the || boolean operator" <|
             \() ->
                 """module A exposing (..)
@@ -165,7 +195,12 @@ fun n =
     else
         2
 """
-                    |> expectComplexity [ ( "fun", 2 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 2
+                          , details = [ "Line 3: +1 for the if expression" ]
+                          }
+                        ]
         , test "should increment when mixing boolean operators" <|
             \() ->
                 """module A exposing (..)
@@ -179,7 +214,12 @@ fun n =
     else
         2
 """
-                    |> expectComplexity [ ( "fun", 4 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 4
+                          , details = [ "Line 3: +1 for the if expression" ]
+                          }
+                        ]
         , test "should not increment for anonymous functions" <|
             \() ->
                 """module A exposing (..)
@@ -201,7 +241,12 @@ fun n =
         )
         n
 """
-                    |> expectComplexity [ ( "fun", 2 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 2
+                          , details = [ "Line 5: +2 for the if expression" ]
+                          }
+                        ]
         , test "should properly decrement the nesting when exiting an anonymous function" <|
             \() ->
                 """module A exposing (..)
@@ -214,7 +259,12 @@ fun n =
     else
         2
 """
-                    |> expectComplexity [ ( "fun", 1 ) ]
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 1
+                          , details = [ "Line 6: +1 for the if expression" ]
+                          }
+                        ]
         , test "should increment when find a recursive call" <|
             \() ->
                 """module A exposing (..)
@@ -224,7 +274,13 @@ fun n =
     else
         1
 """
-                    |> expectComplexityAt [ ( "fun", 2, { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } } ) ]
+                    |> expectAtExactly
+                        [ { name = "fun"
+                          , complexity = 2
+                          , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } }
+                          , details = [ "Line 3: +1 for the if expression" ]
+                          }
+                        ]
         , test "should only increment once, even if there are multiple recursive calls" <|
             \() ->
                 """module A exposing (..)
@@ -235,7 +291,13 @@ fib n =
     else
         0
 """
-                    |> expectComplexityAt [ ( "fib", 2, { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } } ) ]
+                    |> expectAtExactly
+                        [ { name = "fib"
+                          , complexity = 2
+                          , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 4 } }
+                          , details = [ "Line 3: +1 for the if expression" ]
+                          }
+                        ]
         , test "should increment the complexity for every recursive call in a chain" <|
             \() ->
                 """module A exposing (..)
@@ -314,7 +376,7 @@ alsoSimple n =
                           , complexity = 3
                           , details = [ String.trim """
 Line 5: +1 for the if expression
-Line 6: +3 for the if expression
+Line 6: +2 for the if expression
 """ ]
                           }
                         , { name = "alsoSimple"
