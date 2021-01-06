@@ -89,6 +89,7 @@ type alias Increase =
 type IncrementKind
     = If
     | Case
+    | Operator String
 
 
 initialContext : Context
@@ -144,16 +145,26 @@ expressionEnterVisitor node context =
         Expression.OperatorApplication operator _ left right ->
             if (operator == "&&" || operator == "||") && not (List.member (Node.range node) context.operandsToIgnore) then
                 let
-                    ( complexity, operandsToIgnore ) =
+                    ( increases, operandsToIgnore ) =
                         incrementAndIgnoreForOperands
                             operator
-                            0
+                            []
                             left
                             right
                 in
                 ( []
                 , { context
-                    | complexity = context.complexity + complexity + 1
+                    | complexity = context.complexity + List.sum (List.map .increase increases) + 1
+
+                    -- TODO add an additional increase here for this node
+                    , increases =
+                        { line = (Node.range node).start
+                        , increase = 1
+                        , nesting = 0
+                        , kind = Operator operator
+                        }
+                            :: increases
+                            ++ context.increases
                     , operandsToIgnore = operandsToIgnore ++ context.operandsToIgnore
                   }
                 )
@@ -171,45 +182,50 @@ expressionEnterVisitor node context =
             ( [], context )
 
 
-incrementAndIgnoreForOperands : String -> Int -> Node Expression -> Node Expression -> ( Int, List Range )
-incrementAndIgnoreForOperands operator complexity left right =
+incrementAndIgnoreForOperands : String -> List Increase -> Node Expression -> Node Expression -> ( List Increase, List Range )
+incrementAndIgnoreForOperands operator increases left right =
     let
-        ( leftComplexity, leftIgnore ) =
+        ( leftIncreases, leftIgnore ) =
             incrementAndIgnore operator left
 
-        ( rightComplexity, rightIgnore ) =
+        ( rightIncreases, rightIgnore ) =
             incrementAndIgnore operator right
     in
-    ( leftComplexity + rightComplexity + complexity
+    ( List.concat [ leftIncreases, rightIncreases, increases ]
     , Node.range left :: Node.range right :: leftIgnore ++ rightIgnore
     )
 
 
-incrementAndIgnore : String -> Node Expression -> ( Int, List Range )
+incrementAndIgnore : String -> Node Expression -> ( List Increase, List Range )
 incrementAndIgnore parentOperator node =
     case Node.value node of
         Expression.OperatorApplication operator _ left right ->
             if operator == "&&" || operator == "||" then
                 let
-                    newOperatorIncrement : Int
-                    newOperatorIncrement =
+                    newOperatorIncrease : List Increase
+                    newOperatorIncrease =
                         if operator == parentOperator then
-                            0
+                            []
 
                         else
-                            1
+                            [ { line = (Node.range node).start
+                              , increase = 1
+                              , nesting = 0
+                              , kind = Operator operator
+                              }
+                            ]
                 in
                 incrementAndIgnoreForOperands
                     operator
-                    newOperatorIncrement
+                    newOperatorIncrease
                     left
                     right
 
             else
-                ( 0, [] )
+                ( [], [] )
 
         _ ->
-            ( 0, [] )
+            ( [], [] )
 
 
 expressionExitVisitor : Node Expression -> Context -> ( List nothing, Context )
@@ -342,6 +358,9 @@ kindToString kind =
 
         Case ->
             "case expression"
+
+        Operator operator ->
+            "use of " ++ operator
 
 
 

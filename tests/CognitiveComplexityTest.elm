@@ -191,7 +191,10 @@ fun n =
                     |> expect
                         [ { name = "fun"
                           , complexity = 2
-                          , details = [ "Line 3: +1 for the if expression" ]
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+Line 4: +1 for the use of &&
+""" ]
                           }
                         ]
         , test "should increment once when using the || boolean operator" <|
@@ -208,7 +211,10 @@ fun n =
                     |> expect
                         [ { name = "fun"
                           , complexity = 2
-                          , details = [ "Line 3: +1 for the if expression" ]
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+Line 4: +1 for the use of ||
+""" ]
                           }
                         ]
         , test "should increment when mixing boolean operators" <|
@@ -227,7 +233,12 @@ fun n =
                     |> expect
                         [ { name = "fun"
                           , complexity = 4
-                          , details = [ "Line 3: +1 for the if expression" ]
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+Line 4: +1 for the use of ||
+Line 4: +1 for the use of &&
+Line 5: +1 for the use of &&
+""" ]
                           }
                         ]
         , test "should not increment for anonymous functions" <|
