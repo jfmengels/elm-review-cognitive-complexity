@@ -193,7 +193,7 @@ fun n =
                           , complexity = 2
                           , details = [ String.trim """
 Line 3: +1 for the if expression
-Line 4: +1 for the use of &&
+Line 4: +1 for the use of `&&`
 """ ]
                           }
                         ]
@@ -213,7 +213,7 @@ fun n =
                           , complexity = 2
                           , details = [ String.trim """
 Line 3: +1 for the if expression
-Line 4: +1 for the use of ||
+Line 4: +1 for the use of `||`
 """ ]
                           }
                         ]
@@ -235,9 +235,9 @@ fun n =
                           , complexity = 4
                           , details = [ String.trim """
 Line 3: +1 for the if expression
-Line 4: +1 for the use of ||
-Line 4: +1 for the use of &&
-Line 5: +1 for the use of &&
+Line 4: +1 for the use of `||`
+Line 4: +1 for the use of `&&`
+Line 5: +1 for the use of `&&`
 """ ]
                           }
                         ]

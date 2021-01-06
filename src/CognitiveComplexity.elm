@@ -400,7 +400,7 @@ kindToString kind =
             "case expression"
 
         Operator operator ->
-            "use of " ++ operator
+            "use of `" ++ operator ++ "`"
 
         RecursiveCall ->
             "recursive call"
