@@ -49,7 +49,7 @@ fun n =
 fun n =
     n + 1
 """
-                    |> expectComplexity [ ( "fun", 0 ) ]
+                    |> expect [ { name = "fun", complexity = 0, details = [ "REPLACEME" ] } ]
         , test "should count if expression as 1" <|
             \() ->
                 """module A exposing (..)
@@ -321,16 +321,16 @@ expectComplexity functionComplexities source =
             )
 
 
-expect : List { name : String, complexity : Int, increases : List { line : Int, inc : Int, nesting : Int } } -> String -> Expectation
+expect : List { name : String, complexity : Int, details : List String } -> String -> Expectation
 expect functionComplexities source =
     source
         |> Review.Test.run (rule -1)
         |> Review.Test.expectErrors
             (List.map
-                (\{ name, complexity } ->
+                (\{ name, complexity, details } ->
                     Review.Test.error
                         { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed -1"
-                        , details = [ "REPLACEME" ]
+                        , details = details
                         , under = name
                         }
                 )
