@@ -305,10 +305,22 @@ alsoSimple n =
     else
       2
 """
-                    |> expectComplexity
-                        [ ( "simple", 0 )
-                        , ( "fun", 3 )
-                        , ( "alsoSimple", 1 )
+                    |> expect
+                        [ { name = "simple"
+                          , complexity = 0
+                          , details = []
+                          }
+                        , { name = "fun"
+                          , complexity = 3
+                          , details = [ String.trim """
+Line 5: +1 for the if expression
+Line 6: +3 for the if expression
+""" ]
+                          }
+                        , { name = "alsoSimple"
+                          , complexity = 1
+                          , details = [ "Line 14: +1 for the if expression" ]
+                          }
                         ]
         ]
 
@@ -358,6 +370,24 @@ expectComplexityAt functionComplexities source =
                         { message = fnName ++ " has a cognitive complexity of " ++ String.fromInt expected ++ ", higher than the allowed -1"
                         , details = [ "REPLACEME" ]
                         , under = fnName
+                        }
+                        |> Review.Test.atExactly atExactly
+                )
+                functionComplexities
+            )
+
+
+expectAtExactly : List { name : String, complexity : Int, details : List String, atExactly : Range } -> String -> Expectation
+expectAtExactly functionComplexities source =
+    source
+        |> Review.Test.run (rule -1)
+        |> Review.Test.expectErrors
+            (List.map
+                (\{ name, complexity, details, atExactly } ->
+                    Review.Test.error
+                        { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed -1"
+                        , details = "REPLACEME" :: details
+                        , under = name
                         }
                         |> Review.Test.atExactly atExactly
                 )
