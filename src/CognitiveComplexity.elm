@@ -292,7 +292,7 @@ finalEvaluation threshold context =
                     )
                 |> Dict.fromList
                 |> findRecursiveCalls
-                |> Dict.map (\_ recursiveFunctions -> Set.size recursiveFunctions)
+                |> Dict.map (\_ recursiveFunctions -> Dict.size recursiveFunctions)
     in
     List.filterMap
         (\{ functionName, increases } ->
@@ -359,7 +359,7 @@ kindToString kind =
 
 
 type alias RecursiveCalls =
-    Dict String (Set String)
+    Dict String (Dict String Location)
 
 
 type alias Visited =
@@ -371,7 +371,7 @@ type VisitState
     | Done
 
 
-findRecursiveCalls : Dict String (Dict String a) -> RecursiveCalls
+findRecursiveCalls : Dict String (Dict String Location) -> RecursiveCalls
 findRecursiveCalls graph =
     graph
         |> Dict.keys
@@ -395,28 +395,28 @@ mergeRecursiveCallsDict : RecursiveCalls -> RecursiveCalls -> RecursiveCalls
 mergeRecursiveCallsDict left right =
     Dict.merge
         (\functionName calls dict -> Dict.insert functionName calls dict)
-        (\functionName callsLeft callsRight dict -> Dict.insert functionName (Set.union callsLeft callsRight) dict)
+        (\functionName callsLeft callsRight dict -> Dict.insert functionName (Dict.union callsLeft callsRight) dict)
         (\functionName calls dict -> Dict.insert functionName calls dict)
         left
         right
         Dict.empty
 
 
-processDFSTree : Dict String (Dict String a) -> List String -> Visited -> { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
+processDFSTree : Dict String (Dict String Location) -> List String -> Visited -> { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
 processDFSTree graph stack visited =
     let
-        vertices : List String
+        vertices : List ( String, Location )
         vertices =
             List.head stack
                 |> Maybe.andThen (\v -> Dict.get v graph)
                 |> Maybe.withDefault Dict.empty
-                |> Dict.keys
+                |> Dict.toList
     in
     List.foldl
-        (\vertice acc ->
+        (\( vertice, location ) acc ->
             case Dict.get vertice visited of
                 Just InStack ->
-                    { acc | recursiveCalls = insertCycle stack vertice acc.recursiveCalls }
+                    { acc | recursiveCalls = insertCycle stack ( vertice, location ) acc.recursiveCalls }
 
                 Just Done ->
                     acc
@@ -445,15 +445,15 @@ processDFSTree graph stack visited =
            )
 
 
-insertCycle : List String -> String -> Dict String (Set String) -> Dict String (Set String)
-insertCycle stack vertice recursiveCalls =
+insertCycle : List String -> ( String, Location ) -> RecursiveCalls -> RecursiveCalls
+insertCycle stack ( vertice, location ) recursiveCalls =
     case stack of
         x :: xs ->
             List.foldl
                 (\( functionName, reference ) acc ->
                     Dict.update
                         functionName
-                        (Maybe.withDefault Set.empty >> Set.insert reference >> Just)
+                        (Maybe.withDefault Dict.empty >> Dict.insert reference location >> Just)
                         acc
                 )
                 recursiveCalls
