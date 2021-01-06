@@ -309,7 +309,7 @@ finalEvaluation threshold context =
             let
                 finalComplexity : Int
                 finalComplexity =
-                    complexity + (Dict.get (Node.value functionName) numberOfDifferentRecursiveCalls |> Maybe.withDefault 0)
+                    List.sum (List.map .increase increases) + (Dict.get (Node.value functionName) numberOfDifferentRecursiveCalls |> Maybe.withDefault 0)
             in
             if finalComplexity > threshold then
                 Just
