@@ -15,29 +15,88 @@ import Review.Rule as Rule exposing (Rule)
 import Set exposing (Set)
 
 
-{-| Reports... REPLACEME
+{-| Reports functions that have a too high cognitive complexity.
+
+You can configure the threshold above which a function will be reported (`20` in the example configuration below).
 
     config =
-        [ CognitiveComplexity.rule 10
+        [ CognitiveComplexity.rule 20
         ]
 
 
-## Fail
+## Complexity breakdown
 
-    a =
-        "REPLACEME example to replace"
+  - If expression: Increases complexity by 1 + nesting, and increases nesting. Additional `else if` expression don't increase the complexity.
 
+```js
+-- Total: 3
+a =
+  if b then           -- +1
+    if c then         -- +2, including 1 for nesting
+      1
+    else
+      2
+  else if other then  -- +0
+      3
+  else                -- +0
+      4
+```
 
-## Success
+  - Case expression: Increases complexity by 1 + nesting, regardless of how many cases are handled, and increases nesting.
 
-    a =
-        "REPLACEME example to replace"
+```js
+-- Total: 3
+a =
+  case b of -- +1
+    A -> 1
+    B -> 2
+    C ->
+      case c of -- +2, including 1 for nesting
+        _ -> 3
+    D -> 4
+```
+
+  - Logical operator suites: Increase complexity by 1 for every discontinuation of the suite
+
+```elm
+a && b -- +1
+
+-- This is still the same logical construction as
+-- above, and therefore about as hard to understand
+a && b && c && d && e -- +1
+
+-- Total: 3
+a && b && c -- +1
+  || d -- +1 for breaking the chain of && with a ||
+  || not (e || f) -- +1 for breaking the chain
+                  -- with a `not` of a binary operation
+```
+
+  - Recursive function calls (direct or indirect): Increase complexity by 1 for each different call
+
+```js
+-- Total: 2
+fun1 n =
+  fun2 n    -- +1
+  + fun2 n  -- +0, already counted
+  + fun1 n  -- +1
+
+-- Total: 1
+fun2 n =
+  fun1 n    -- +1
+```
 
 
 ## When (not) to enable this rule
 
-This rule is useful when REPLACEME.
-This rule is not useful when REPLACEME.
+This rule is an experiment. I don't know if this will be more useful or detrimental, and I haven't yet figured out what
+the ideal complexity threshold is.
+
+I would for now recommend to use it with a very high threshold to find places in your codebase that need refactoring,
+and eventually to enable it in your configuration to make sure no very complex functions appear. As you refactor more
+and more of your codebase, you can gradually lower the threshold until a level that you feel happy with.
+
+Please let me know how that goes!
 
 
 ## Try it out
