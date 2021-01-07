@@ -28,5 +28,5 @@ config =
 You can try the example configuration above out by running the following command:
 
 ```bash
-elm-review --template jfmengels/elm-review-cognitive-complexity/example
+elm-review --template jfmengels/elm-review-cognitive-complexity/preview
 ```
