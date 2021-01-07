@@ -29,6 +29,10 @@ You can configure the threshold above which a function will be reported (`20` in
 Cognitive complexity tries to measure how hard it is to understand a function, primarily focusing on the control structures
 that hinder the understanding of a function by reading it from top to bottom in one go, like you would for a novel.
 
+It is not to be confused with "Cyclomatic Complexity", which has a different way of measuring the complexity.
+
+Following is a breakdown of how the complexity of a function is computed:
+
   - If expression: Increases complexity by 1 + nesting, and increases nesting. Additional `else if` expression don't increase the complexity.
 
 ```js

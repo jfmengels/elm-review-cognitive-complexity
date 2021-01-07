@@ -1,11 +1,11 @@
 # elm-review-cognitive-complexity
 
-Provides [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rules to REPLACEME.
+Provides an [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-review/latest/) rule to measure the cognitive complexity of a function.
 
 
 ## Provided rules
 
-- [`CognitiveComplexity`](https://package.elm-lang.org/packages/jfmengels/elm-review-cognitive-complexity/1.0.0/CognitiveComplexity) - Reports REPLACEME.
+- [`CognitiveComplexity`](https://package.elm-lang.org/packages/jfmengels/elm-review-cognitive-complexity/1.0.0/CognitiveComplexity) - Reports functions that have a too high cognitive complexity.
 
 
 ## Configuration
