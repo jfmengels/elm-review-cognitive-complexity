@@ -17,5 +17,5 @@ import Review.Rule exposing (Rule)
 
 config : List Rule
 config =
-    [ CognitiveComplexity.rule 10
+    [ CognitiveComplexity.rule 20
     ]
