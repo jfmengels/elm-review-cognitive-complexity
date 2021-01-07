@@ -26,6 +26,9 @@ You can configure the threshold above which a function will be reported (`20` in
 
 ## Complexity breakdown
 
+Cognitive complexity tries to measure how hard it is to understand a function, primarily focusing on the control structures
+that hinder the understanding of a function by reading it from top to bottom in one go, like you would for a novel.
+
   - If expression: Increases complexity by 1 + nesting, and increases nesting. Additional `else if` expression don't increase the complexity.
 
 ```js
@@ -86,6 +89,9 @@ fun2 n =
   fun1 n    -- +1
 ```
 
+[The original metric](https://www.sonarsource.com/docs/CognitiveComplexity.pdf) increases the complexity for other
+structures that the Elm doesn't have.
+
 
 ## When (not) to enable this rule
 
@@ -139,11 +145,11 @@ type alias Increase =
     { line : Location
     , increase : Int
     , nesting : Int
-    , kind : IncrementKind
+    , kind : IncreaseKind
     }
 
 
-type IncrementKind
+type IncreaseKind
     = If
     | Case
     | Operator String
@@ -449,7 +455,7 @@ mentionNesting nesting =
         " (incl " ++ String.fromInt nesting ++ " for nesting)"
 
 
-kindToString : IncrementKind -> String
+kindToString : IncreaseKind -> String
 kindToString kind =
     case kind of
         If ->
