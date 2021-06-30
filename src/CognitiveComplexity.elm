@@ -23,6 +23,10 @@ You can configure the threshold above which a function will be reported (`20` in
         [ CognitiveComplexity.rule 20
         ]
 
+REPLACEME Add guiding principles from the white paper
+REPLACEME: Increment for functions in let declarations?
+REPLACEME: Increment for else if?
+
 
 ## Complexity breakdown
 
