@@ -441,7 +441,7 @@ finalEvaluation threshold context =
 explanation : List String
 explanation =
     [ "This metric is a heuristic to measure how easy to understand a piece of code is, primarily through increments for breaks in the linear flow and for nesting those breaks."
-    , "The most common ways to reduce complexity is to extract section into methods and to unnest control flow structures. Following is a breakdown of where complexity was found:"
+    , "The most common ways to reduce complexity is to extract sections into functions and to unnest control flow structures. Following is a breakdown of where complexity was found:"
     ]
 
 
