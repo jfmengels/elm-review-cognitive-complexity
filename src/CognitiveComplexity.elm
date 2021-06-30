@@ -117,6 +117,8 @@ You can try this rule out by running the following command:
 elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules CognitiveComplexity
 ```
 
+The cognitive complexity is set to 20 in the configuration used by the example.
+
 -}
 rule : Int -> Rule
 rule threshold =
