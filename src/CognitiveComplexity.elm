@@ -458,7 +458,7 @@ mentionNesting nesting =
         ""
 
     else
-        " (incl " ++ String.fromInt nesting ++ " for nesting)"
+        " (including " ++ String.fromInt nesting ++ " for nesting)"
 
 
 kindToString : IncreaseKind -> String
