@@ -94,7 +94,7 @@ fun2 n =
 ```
 
 [The original metric](https://www.sonarsource.com/docs/CognitiveComplexity.pdf) increases the complexity for other
-structures that the Elm doesn't have.
+structures that the Elm language doesn't have.
 
 
 ## When (not) to enable this rule
@@ -103,8 +103,8 @@ This rule is an experiment. I don't know if this will be more useful or detrimen
 the ideal complexity threshold is.
 
 I would for now recommend to use it with a very high threshold to find places in your codebase that need refactoring,
-and eventually to enable it in your configuration to make sure no very complex functions appear. As you refactor more
-and more of your codebase, you can gradually lower the threshold until a level that you feel happy with.
+and eventually to enable it in your configuration to make sure no new extremely complex functions appear. As you refactor more
+and more of your codebase, you can gradually lower the threshold until you reach a level that you feel happy with.
 
 Please let me know how that goes!
 
