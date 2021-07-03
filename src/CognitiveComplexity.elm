@@ -23,29 +23,59 @@ You can configure the threshold above which a function will be reported (`15` in
         [ CognitiveComplexity.rule 15
         ]
 
-REPLACEME Add guiding principles from the white paper
+
+## What is cognitive complexity?
+
+Cognitive complexity is **not to be confused with "Cyclomatic Complexity"**, which has a different way of measuring the
+complexity.
+
+Here's an explanation extracted from [free white paper](https://www.sonarsource.com/resources/white-papers/cognitive-complexity/)
+provided by SonarSource, the creators of the concept.
+
+> Cognitive complexity tries to measure how hard it is to understand a function, primarily focusing on the control structures
+> that hinder the understanding of a function by reading it from top to bottom in one go, like you would for a novel.
+
+> A Cognitive Complexity score is assessed according to three basic rules:
+
+> 1.  Ignore structures that allow multiple statements to be readably shorthanded into one
+> 2.  Increment (add one) for each break in the linear flow of the code
+> 3.  Increment when flow-breaking structures are nested
+
+Some small differences may be found between the implementation detailed in the paper and this rule, as the idea was
+formulated more on imperative programming languages, and may not be applicable to a pure functional language like Elm.
+
+You can read about how is works in the [complexity breakdown section](#complexity-breakdown) below.
+
+
+## When (not) to enable this rule
+
+This rule is an experiment. I don't know if this will be more useful or detrimental, and I haven't yet figured out what
+the ideal complexity threshold for Elm projects is.
+
+I would for now recommend to use it with a very high threshold to find places in your codebase that need refactoring,
+and eventually to enable it in your configuration to make sure no new extremely complex functions appear. As you refactor more
+and more of your codebase, you can gradually lower the threshold until you reach a level that you feel happy with.
+
+Please let me know how enabling this rule works out for you!
 
 
 ## Complexity breakdown
 
-Cognitive complexity tries to measure how hard it is to understand a function, primarily focusing on the control structures
-that hinder the understanding of a function by reading it from top to bottom in one go, like you would for a novel.
-
-It is not to be confused with "Cyclomatic Complexity", which has a different way of measuring the complexity.
-
 Following is a breakdown of how the complexity of a function is computed:
 
-  - If expression: Increases complexity by 1 + nesting, and increases nesting. Additional `else if` expression don't increase the complexity.
+  - If expression: Increases complexity by 1 + nesting, and increases nesting.
+    `else if` also increases complexity by 1 + nesting, but doesn't further increase the nesting.
+    `else` doesn't increase the complexity.
 
 ```js
--- Total: 3
+-- Total: 4
 a =
   if b then           -- +1
     if c then         -- +2, including 1 for nesting
       1
     else
       2
-  else if other then  -- +0
+  else if d then      -- +1
       3
   else                -- +0
       4
@@ -63,6 +93,38 @@ a =
       case c of -- +2, including 1 for nesting
         _ -> 3
     D -> 4
+```
+
+  - Let functions: Increases nesting.
+
+```js
+-- Total: 2
+a =
+  let
+    fn b =   -- increases nesting
+      if b then    -- +2, including 1 for nesting
+        1
+      else
+        2
+
+    constant = -- Not a function, no increase
+      True
+  in
+  fn constant
+```
+
+  - Anonymous functions: Increases nesting.
+
+```js
+-- Total: 2
+a things =
+  List.map
+    (\thing ->        -- increases nesting
+      case thing of   -- +2, including 1 for nesting
+        Just _ -> 1
+        Nothing -> 2
+    )
+    things
 ```
 
   - Logical operator suites: Increase complexity by 1 for every discontinuation of the suite
@@ -99,18 +161,6 @@ fun2 n =
 structures that the Elm language doesn't have.
 
 
-## When (not) to enable this rule
-
-This rule is an experiment. I don't know if this will be more useful or detrimental, and I haven't yet figured out what
-the ideal complexity threshold for new projects is.
-
-I would for now recommend to use it with a very high threshold to find places in your codebase that need refactoring,
-and eventually to enable it in your configuration to make sure no new extremely complex functions appear. As you refactor more
-and more of your codebase, you can gradually lower the threshold until you reach a level that you feel happy with.
-
-Please let me know how that goes!
-
-
 ## Try it out
 
 You can try this rule out by running the following command:
@@ -120,6 +170,12 @@ elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules 
 ```
 
 The cognitive complexity is set to 15 in the configuration used by the example.
+
+
+## Thanks
+
+Thanks to the team at SonarSource for designing the metric and for not restricting its use.
+Thanks to G. Ann Campbell for the different talks she made on the subject.
 
 -}
 rule : Int -> Rule
@@ -655,13 +711,3 @@ takeTop stack ( previousValue, previousValues ) stopValue =
 
             else
                 ( x, previousValue :: previousValues )
-
-
-
--- TODO Document differences with whitepaper
-{- TODO Add error details explaining how to simplify
-   - Collapse conditions
-   - Extract to methods
-
-   https://community.sonarsource.com/t/webinar-refactoring-with-cognitive-complexity/45331/2
--}
