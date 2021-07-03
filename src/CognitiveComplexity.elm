@@ -138,6 +138,7 @@ type alias Context =
     { nesting : Int
     , operandsToIgnore : List Range
     , elseIfToIgnore : List Range
+    , rangesWhereNestingIncreases : List Range
     , increases : List Increase
     , references : Dict String Location
     , functionsToReport : List FunctionToReport
@@ -172,6 +173,7 @@ initialContext =
     { nesting = 0
     , operandsToIgnore = []
     , elseIfToIgnore = []
+    , rangesWhereNestingIncreases = []
     , references = Dict.empty
     , increases = []
     , functionsToReport = []
@@ -377,6 +379,7 @@ declarationExitVisitor node context =
     , { nesting = 0
       , operandsToIgnore = []
       , elseIfToIgnore = []
+      , rangesWhereNestingIncreases = []
       , references = Dict.empty
       , increases = []
       , functionsToReport = functionsToReport
