@@ -198,7 +198,7 @@ expressionEnterVisitor node context =
                 )
 
             else
-                ( [], { context | elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore } )
+                ( [], context )
 
         Expression.CaseExpression _ ->
             ( []
