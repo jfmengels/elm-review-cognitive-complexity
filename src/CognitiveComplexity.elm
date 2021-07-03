@@ -24,7 +24,6 @@ You can configure the threshold above which a function will be reported (`15` in
         ]
 
 REPLACEME Add guiding principles from the white paper
-REPLACEME: Increment for else if?
 
 
 ## Complexity breakdown
@@ -161,6 +160,7 @@ type alias Increase =
 
 type IncreaseKind
     = If
+    | ElseIf
     | Case
     | Operator String
     | RecursiveCall
@@ -182,19 +182,18 @@ initialContext =
 expressionEnterVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionEnterVisitor node context =
     if List.member (Node.range node) context.rangesWhereNestingIncreases then
-        expressionEnterVisitorHelp node { context | nesting = context.nesting + 1 }
+        ( [], expressionEnterVisitorHelp node { context | nesting = context.nesting + 1 } )
 
     else
-        expressionEnterVisitorHelp node context
+        ( [], expressionEnterVisitorHelp node context )
 
 
-expressionEnterVisitorHelp : Node Expression -> Context -> ( List nothing, Context )
+expressionEnterVisitorHelp : Node Expression -> Context -> Context
 expressionEnterVisitorHelp node context =
     case Node.value node of
         Expression.IfBlock _ _ else_ ->
             if not (List.member (Node.range node) context.elseIfToIgnore) then
-                ( []
-                , { context
+                { context
                     | increases =
                         { line = (Node.range node).start
                         , increase = context.nesting + 1
@@ -204,15 +203,24 @@ expressionEnterVisitorHelp node context =
                             :: context.increases
                     , nesting = context.nesting + 1
                     , elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore
-                  }
-                )
+                }
 
             else
-                ( [], context )
+                -- This if expression is an else if
+                -- We want to increase the complexity but keep the same nesting as the parent if
+                { context
+                    | increases =
+                        { line = (Node.range node).start
+                        , increase = context.nesting
+                        , nesting = context.nesting - 1
+                        , kind = ElseIf
+                        }
+                            :: context.increases
+                    , elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore
+                }
 
         Expression.CaseExpression _ ->
-            ( []
-            , { context
+            { context
                 | increases =
                     { line = (Node.range node).start
                     , increase = context.nesting + 1
@@ -221,8 +229,7 @@ expressionEnterVisitorHelp node context =
                     }
                         :: context.increases
                 , nesting = context.nesting + 1
-              }
-            )
+            }
 
         Expression.LetExpression { declarations } ->
             let
@@ -243,7 +250,7 @@ expressionEnterVisitorHelp node context =
                         )
                         declarations
             in
-            ( [], { context | rangesWhereNestingIncreases = newRangesWhereNestingIncreases ++ context.rangesWhereNestingIncreases } )
+            { context | rangesWhereNestingIncreases = newRangesWhereNestingIncreases ++ context.rangesWhereNestingIncreases }
 
         Expression.OperatorApplication operator _ left right ->
             if (operator == "&&" || operator == "||") && not (List.member (Node.range node) context.operandsToIgnore) then
@@ -255,8 +262,7 @@ expressionEnterVisitorHelp node context =
                             left
                             right
                 in
-                ( []
-                , { context
+                { context
                     | increases =
                         { line = (Node.range node).start
                         , increase = 1
@@ -266,18 +272,16 @@ expressionEnterVisitorHelp node context =
                             :: increases
                             ++ context.increases
                     , operandsToIgnore = operandsToIgnore ++ context.operandsToIgnore
-                  }
-                )
+                }
 
             else
-                ( [], context )
+                context
 
         Expression.LambdaExpression _ ->
-            ( [], { context | nesting = context.nesting + 1 } )
+            { context | nesting = context.nesting + 1 }
 
         Expression.FunctionOrValue [] name ->
-            ( []
-            , { context
+            { context
                 | references =
                     if Dict.member name context.references then
                         -- The reference already exists, and we want to keep the first reference
@@ -286,11 +290,10 @@ expressionEnterVisitorHelp node context =
 
                     else
                         Dict.insert name (Node.range node).start context.references
-              }
-            )
+            }
 
         _ ->
-            ( [], context )
+            context
 
 
 incrementAndIgnoreForOperands : String -> List Increase -> Node Expression -> Node Expression -> ( List Increase, List Range )
@@ -504,6 +507,9 @@ kindToString kind =
         If ->
             "if expression"
 
+        ElseIf ->
+            "else if expression"
+
         Case ->
             "case expression"
 
@@ -653,7 +659,6 @@ takeTop stack ( previousValue, previousValues ) stopValue =
 
 
 -- TODO Document differences with whitepaper
--- TODO Increment nested if/else (without increasing the nesting even more)
 {- TODO Add error details explaining how to simplify
    - Collapse conditions
    - Extract to methods

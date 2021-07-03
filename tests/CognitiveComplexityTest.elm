@@ -68,21 +68,24 @@ fun n =
                           , details = [ "Line 3: +1 for the if expression" ]
                           }
                         ]
-        , test "should not count if else expressions" <|
+        , test "should count if else expressions" <|
             \() ->
                 """module A exposing (..)
 fun n =
     if cond then        -- +1
       1
-    else if cond then   -- +0
+    else if cond then   -- +1
       2
     else
       2
 """
                     |> expect
                         [ { name = "fun"
-                          , complexity = 1
-                          , details = [ "Line 3: +1 for the if expression" ]
+                          , complexity = 2
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+Line 5: +1 for the else if expression
+""" ]
                           }
                         ]
         , test "should properly decrement when exiting else expression" <|
@@ -93,7 +96,7 @@ fun n =
     _ =
       if cond then        -- +1
         1
-      else if cond then   -- +0
+      else if cond then   -- +1
         2
       else
         3
@@ -105,9 +108,10 @@ fun n =
 """
                     |> expect
                         [ { name = "fun"
-                          , complexity = 2
+                          , complexity = 3
                           , details = [ String.trim """
 Line 5: +1 for the if expression
+Line 7: +1 for the else if expression
 Line 12: +1 for the if expression
 """ ]
                           }
