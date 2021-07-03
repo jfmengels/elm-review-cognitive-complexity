@@ -90,27 +90,6 @@ fun n =
                 """module A exposing (..)
 fun n =
   let
-    fn n =
-      if cond then        -- +2
-        1
-      else
-        2
-  in
-  fn n
-"""
-                    |> expect
-                        [ { name = "fun"
-                          , complexity = 2
-                          , details = [ String.trim """
-Line 5: +2 for the if expression (including 1 for nesting)
-""" ]
-                          }
-                        ]
-        , test "should increment nesting when inside a let function" <|
-            \() ->
-                """module A exposing (..)
-fun n =
-  let
     _ =
       if cond then        -- +1
         1
@@ -130,6 +109,51 @@ fun n =
                           , details = [ String.trim """
 Line 5: +1 for the if expression
 Line 12: +1 for the if expression
+""" ]
+                          }
+                        ]
+        , test "should increment nesting when inside a let function" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+  let
+    fn n =
+      if cond then        -- +2
+        1
+      else
+        2
+  in
+  fn n
+"""
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 2
+                          , details = [ String.trim """
+Line 5: +2 for the if expression (including 1 for nesting)
+""" ]
+                          }
+                        ]
+        , test "should properly decrement nesting when exiting a let function" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+  let
+    fn1 n = -- nesting increment
+        1
+
+    fn2 =
+      if cond then        -- +1
+        1
+      else
+        2
+  in
+  1
+"""
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 1
+                          , details = [ String.trim """
+Line 8: +1 for the if expression
 """ ]
                           }
                         ]

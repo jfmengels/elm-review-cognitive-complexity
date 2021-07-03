@@ -24,7 +24,6 @@ You can configure the threshold above which a function will be reported (`20` in
         ]
 
 REPLACEME Add guiding principles from the white paper
-REPLACEME: Increment for functions in let declarations?
 REPLACEME: Increment for else if?
 
 
@@ -342,30 +341,31 @@ incrementAndIgnore parentOperator node =
 
 expressionExitVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionExitVisitor node context =
+    if List.member (Node.range node) context.rangesWhereNestingIncreases then
+        ( [], expressionExitVisitorHelp node { context | nesting = context.nesting - 1 } )
+
+    else
+        ( [], expressionExitVisitorHelp node context )
+
+
+expressionExitVisitorHelp : Node Expression -> Context -> Context
+expressionExitVisitorHelp node context =
     case Node.value node of
         Expression.IfBlock _ _ _ ->
             if not (List.member (Node.range node) context.elseIfToIgnore) then
-                ( []
-                , { context
-                    | nesting = context.nesting - 1
-                  }
-                )
+                { context | nesting = context.nesting - 1 }
 
             else
-                ( [], context )
+                context
 
         Expression.CaseExpression _ ->
-            ( []
-            , { context
-                | nesting = context.nesting - 1
-              }
-            )
+            { context | nesting = context.nesting - 1 }
 
         Expression.LambdaExpression _ ->
-            ( [], { context | nesting = context.nesting - 1 } )
+            { context | nesting = context.nesting - 1 }
 
         _ ->
-            ( [], context )
+            context
 
 
 declarationExitVisitor : Node Declaration -> Context -> ( List (Rule.Error {}), Context )
@@ -653,12 +653,11 @@ takeTop stack ( previousValue, previousValues ) stopValue =
 
 
 -- TODO Document differences with whitepaper
+-- TODO Reduce default complexity to 15
+-- TODO Increment nested if/else (without increasing the nesting even more)
 {- TODO Add error details explaining how to simplify
    - Collapse conditions
    - Extract to methods
-   - Increment nesting for let functions?
-   - Reduce default complexity to 15
-   - Increment nested if/else (without increasing the nesting even more)
 
    https://community.sonarsource.com/t/webinar-refactoring-with-cognitive-complexity/45331/2
 -}
