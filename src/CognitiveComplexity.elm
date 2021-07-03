@@ -588,24 +588,20 @@ insertCycle stack vertice recursiveCalls =
                         acc
                 )
                 recursiveCalls
-                (takeTop xs ( x, [] ) vertice
-                    |> toTuples x
-                )
+                (toTuples x (takeTop xs ( x, [] ) vertice) [])
 
         [] ->
             recursiveCalls
 
 
-toTuples : String -> ( String, List String ) -> List ( String, String )
-toTuples x ( first, xs ) =
-    ( x, first )
-        :: (case xs of
-                [] ->
-                    []
+toTuples : String -> ( String, List String ) -> List ( String, String ) -> List ( String, String )
+toTuples x ( first, xs ) result =
+    case xs of
+        [] ->
+            ( x, first ) :: result
 
-                firstofXs :: restOfXs ->
-                    toTuples first ( firstofXs, restOfXs )
-           )
+        firstofXs :: restOfXs ->
+            toTuples first ( firstofXs, restOfXs ) (( x, first ) :: result)
 
 
 takeTop : List String -> ( String, List String ) -> String -> ( String, List String )
