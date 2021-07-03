@@ -182,7 +182,11 @@ initialContext =
 
 expressionEnterVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionEnterVisitor node context =
-    expressionEnterVisitorHelp node context
+    if List.member (Node.range node) context.rangesWhereNestingIncreases then
+        expressionEnterVisitorHelp node { context | nesting = context.nesting + 1 }
+
+    else
+        expressionEnterVisitorHelp node context
 
 
 expressionEnterVisitorHelp : Node Expression -> Context -> ( List nothing, Context )
