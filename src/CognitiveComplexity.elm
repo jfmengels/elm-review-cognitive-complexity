@@ -619,14 +619,13 @@ takeTop stack ( previousValue, previousValues ) stopValue =
 
 
 
+-- TODO Document differences with whitepaper
 {- TODO Add error details explaining how to simplify
    - Collapse conditions
    - Extract to methods
-   - Increment nesting for lambdas
    - Increment nesting for let functions?
    - Reduce default complexity to 15
    - Increment nested if/else (without increasing the nesting even more)
 
    https://community.sonarsource.com/t/webinar-refactoring-with-cognitive-complexity/45331/2
-
 -}
