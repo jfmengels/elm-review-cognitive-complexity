@@ -17,10 +17,10 @@ import Set exposing (Set)
 
 {-| Reports functions that have a too high cognitive complexity.
 
-You can configure the threshold above which a function will be reported (`20` in the example configuration below).
+You can configure the threshold above which a function will be reported (`15` in the example configuration below).
 
     config =
-        [ CognitiveComplexity.rule 20
+        [ CognitiveComplexity.rule 15
         ]
 
 REPLACEME Add guiding principles from the white paper
@@ -103,7 +103,7 @@ structures that the Elm language doesn't have.
 ## When (not) to enable this rule
 
 This rule is an experiment. I don't know if this will be more useful or detrimental, and I haven't yet figured out what
-the ideal complexity threshold is.
+the ideal complexity threshold for new projects is.
 
 I would for now recommend to use it with a very high threshold to find places in your codebase that need refactoring,
 and eventually to enable it in your configuration to make sure no new extremely complex functions appear. As you refactor more
@@ -120,7 +120,7 @@ You can try this rule out by running the following command:
 elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules CognitiveComplexity
 ```
 
-The cognitive complexity is set to 20 in the configuration used by the example.
+The cognitive complexity is set to 15 in the configuration used by the example.
 
 -}
 rule : Int -> Rule
@@ -653,7 +653,6 @@ takeTop stack ( previousValue, previousValues ) stopValue =
 
 
 -- TODO Document differences with whitepaper
--- TODO Reduce default complexity to 15
 -- TODO Increment nested if/else (without increasing the nesting even more)
 {- TODO Add error details explaining how to simplify
    - Collapse conditions
