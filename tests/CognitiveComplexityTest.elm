@@ -90,6 +90,27 @@ fun n =
                 """module A exposing (..)
 fun n =
   let
+    fn n =
+      if cond then        -- +2
+        1
+      else
+        2
+  in
+  fn n
+"""
+                    |> expect
+                        [ { name = "fun"
+                          , complexity = 2
+                          , details = [ String.trim """
+Line 5: +2 for the if expression (including 1 for nesting)
+""" ]
+                          }
+                        ]
+        , test "should increment nesting when inside a let function" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+  let
     _ =
       if cond then        -- +1
         1
