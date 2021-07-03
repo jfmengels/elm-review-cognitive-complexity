@@ -182,6 +182,11 @@ initialContext =
 
 expressionEnterVisitor : Node Expression -> Context -> ( List nothing, Context )
 expressionEnterVisitor node context =
+    expressionEnterVisitorHelp node context
+
+
+expressionEnterVisitorHelp : Node Expression -> Context -> ( List nothing, Context )
+expressionEnterVisitorHelp node context =
     case Node.value node of
         Expression.IfBlock _ _ else_ ->
             if not (List.member (Node.range node) context.elseIfToIgnore) then
