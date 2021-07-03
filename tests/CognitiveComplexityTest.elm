@@ -400,7 +400,6 @@ fun5 n =
   fun1 n    -- +1
 """
                     |> expectAtExactly
-                        -- TODO Fix line numbers
                         [ { name = "fun1"
                           , complexity = 1
                           , atExactly = { start = { row = 2, column = 1 }, end = { row = 2, column = 5 } }
