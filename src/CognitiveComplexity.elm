@@ -67,7 +67,7 @@ Following is a breakdown of how the complexity of a function is computed:
     `else if` also increases complexity by 1 + nesting, but doesn't further increase the nesting.
     `else` doesn't increase the complexity.
 
-```js
+```elm
 -- Total: 4
 a =
   if b then           -- +1
@@ -83,7 +83,7 @@ a =
 
   - Case expression: Increases complexity by 1 + nesting, regardless of how many cases are handled, and increases nesting.
 
-```js
+```elm
 -- Total: 3
 a =
   case b of -- +1
@@ -97,7 +97,7 @@ a =
 
   - Let functions: Increases nesting.
 
-```js
+```elm
 -- Total: 2
 a =
   let
@@ -115,7 +115,7 @@ a =
 
   - Anonymous functions: Increases nesting.
 
-```js
+```elm
 -- Total: 2
 a things =
   List.map
@@ -145,7 +145,7 @@ a && b && c -- +1
 
   - Recursive function calls (direct or indirect): Increase complexity by 1 for each different call
 
-```js
+```elm
 -- Total: 2
 fun1 n =
   fun2 n    -- +1
