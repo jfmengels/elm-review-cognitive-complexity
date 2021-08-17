@@ -183,7 +183,7 @@ Thanks to G. Ann Campbell for the different talks she made on the subject.
 -}
 rule : Int -> Rule
 rule threshold =
-    Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext threshold)
+    Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext [] threshold)
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
@@ -193,7 +193,7 @@ rule threshold =
 
 rule2 : List ( String, Int ) -> Int -> Rule
 rule2 complexityForModules threshold =
-    Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext threshold)
+    Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext complexityForModules threshold)
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
@@ -237,8 +237,8 @@ type IncreaseKind
     | IndirectRecursiveCall String
 
 
-initialContext : Int -> Rule.ContextCreator () Context
-initialContext threshold =
+initialContext : List ( String, Int ) -> Int -> Rule.ContextCreator () Context
+initialContext complexityForModules threshold =
     Rule.initContextCreator
         (\metadata () ->
             { threshold = threshold
