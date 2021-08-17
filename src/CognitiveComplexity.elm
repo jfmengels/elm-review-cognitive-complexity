@@ -202,7 +202,7 @@ rule2 thresholdList threshold =
         thresholdPerModule =
             Dict.fromList thresholdList
     in
-    Rule.newProjectRuleSchema "CognitiveComplexity" {}
+    Rule.newProjectRuleSchema "CognitiveComplexity" { hasErrors = False }
         |> Rule.withModuleVisitor moduleVisitor
         |> Rule.withModuleContext
             { fromProjectToModule = fromProjectToModule thresholdPerModule threshold
@@ -215,12 +215,14 @@ rule2 thresholdList threshold =
 
 fromModuleToProject : a -> Node ModuleName -> ModuleContext -> ProjectContext
 fromModuleToProject _ moduleName _ =
-    {}
+    { hasErrors = False
+    }
 
 
 foldProjectContexts : ProjectContext -> ProjectContext -> ProjectContext
-foldProjectContexts _ _ =
-    {}
+foldProjectContexts newContext previousContext =
+    { hasErrors = previousContext.hasErrors || newContext.hasErrors
+    }
 
 
 moduleVisitor : Rule.ModuleRuleSchema schemaState ModuleContext -> Rule.ModuleRuleSchema { schemaState | hasAtLeastOneVisitor : () } ModuleContext
@@ -233,7 +235,8 @@ moduleVisitor schema =
 
 
 type alias ProjectContext =
-    {}
+    { hasErrors : Bool
+    }
 
 
 type alias ModuleContext =
@@ -615,7 +618,7 @@ finalModuleEvaluation context =
 
 finalProjectEvaluation : Dict String Int -> ProjectContext -> List (Rule.Error scope)
 finalProjectEvaluation thresholdPerModule projectContext =
-    if projectContext.hasNoErrors {- && projectContext.thresholdPerModule /= thresholdPerModule -} then
+    if not projectContext.hasErrors {- && projectContext.thresholdPerModule /= thresholdPerModule -} then
         [ Rule.globalError
             { message = "Congratulations, you have made your code less complex than before!"
             , details = [ "Great!" ]
