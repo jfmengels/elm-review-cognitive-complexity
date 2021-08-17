@@ -702,7 +702,12 @@ finalModuleEvaluation context =
 
 finalProjectEvaluation : Dict String Int -> Int -> ProjectContext -> List (Rule.Error scope)
 finalProjectEvaluation thresholdPerModule globalThreshold projectContext =
-    if projectContext.hasErrors || Dict.fromList projectContext.thresholdPerModule == thresholdPerModule then
+    let
+        newThresholdPerModule : Dict String Int
+        newThresholdPerModule =
+            Dict.fromList projectContext.thresholdPerModule
+    in
+    if projectContext.hasErrors || newThresholdPerModule == thresholdPerModule then
         []
 
     else
@@ -734,7 +739,7 @@ config =
 
 suppressions : List ( String, Int )
 suppressions =
-    [ """ ++ String.join "\n    , " (List.map suppressions projectContext.thresholdPerModule) ++ """
+    [ """ ++ String.join "\n    , " (List.map suppressions (Dict.toList newThresholdPerModule)) ++ """
     ]"""
                 ]
             }
