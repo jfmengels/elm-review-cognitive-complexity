@@ -202,7 +202,7 @@ rule2 thresholdList threshold =
         thresholdPerModule =
             Dict.fromList thresholdList
     in
-    Rule.newProjectRuleSchema "CognitiveComplexity" { hasErrors = False }
+    Rule.newProjectRuleSchema "CognitiveComplexity" { hasErrors = False, thresholdPerModule = [] }
         |> Rule.withModuleVisitor moduleVisitor
         |> Rule.withModuleContext
             { fromProjectToModule = fromProjectToModule thresholdPerModule threshold
@@ -214,20 +214,35 @@ rule2 thresholdList threshold =
 
 
 fromModuleToProject : Dict String Int -> Int -> a -> Node ModuleName -> ModuleContext -> ProjectContext
-fromModuleToProject thresholdPerModule globalThreshold _ moduleName moduleContext =
+fromModuleToProject thresholdPerModule globalThreshold _ moduleNameNode moduleContext =
     let
+        moduleName : String
+        moduleName =
+            String.join "." (Node.value moduleNameNode)
+
         threshold : Int
         threshold =
-            Dict.get (String.join "." (Node.value moduleName)) thresholdPerModule
+            Dict.get moduleName thresholdPerModule
                 |> Maybe.withDefault globalThreshold
+
+        maxComplexityInModule : Int
+        maxComplexityInModule =
+            maxComplexity moduleContext
     in
-    { hasErrors = maxComplexity moduleContext > threshold
+    { hasErrors = maxComplexityInModule > threshold
+    , thresholdPerModule =
+        if maxComplexityInModule > threshold then
+            [ ( moduleName, maxComplexityInModule ) ]
+
+        else
+            []
     }
 
 
 foldProjectContexts : ProjectContext -> ProjectContext -> ProjectContext
 foldProjectContexts newContext previousContext =
     { hasErrors = previousContext.hasErrors || newContext.hasErrors
+    , thresholdPerModule = List.append newContext.thresholdPerModule previousContext.thresholdPerModule
     }
 
 
@@ -242,6 +257,7 @@ moduleVisitor schema =
 
 type alias ProjectContext =
     { hasErrors : Bool
+    , thresholdPerModule : List ( String, Int )
     }
 
 
@@ -686,7 +702,7 @@ finalModuleEvaluation context =
 
 finalProjectEvaluation : Dict String Int -> ProjectContext -> List (Rule.Error scope)
 finalProjectEvaluation thresholdPerModule projectContext =
-    if not projectContext.hasErrors {- && projectContext.thresholdPerModule /= thresholdPerModule -} then
+    if not projectContext.hasErrors && Dict.fromList projectContext.thresholdPerModule /= thresholdPerModule then
         [ Rule.globalError
             { message = "Congratulations, you have made your code less complex than before!"
             , details = [ "Great!" ]
