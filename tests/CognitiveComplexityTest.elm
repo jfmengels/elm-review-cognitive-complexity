@@ -556,6 +556,25 @@ Line 3: +1 for the if expression
 """ ]
                           }
                         ]
+        , test "should use the found threshold for a module with one" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    if cond then        -- +1
+      1
+    else
+      2
+"""
+                    |> expectForModules
+                        -2
+                        [ ( "A", -2 ) ]
+                        [ { name = "fun"
+                          , complexity = 1
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+""" ]
+                          }
+                        ]
         ]
 
 
