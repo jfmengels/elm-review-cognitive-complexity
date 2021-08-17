@@ -18,6 +18,7 @@ module CognitiveComplexity exposing
 import Dict exposing (Dict)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
+import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range exposing (Location, Range)
 import Review.Rule as Rule exposing (Rule)
@@ -196,9 +197,28 @@ rule threshold =
 
 rule2 : List ( String, Int ) -> Int -> Rule
 rule2 complexityForModules threshold =
-    Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext complexityForModules threshold)
-        |> moduleVisitor
-        |> Rule.fromModuleRuleSchema
+    let
+        complexityPerModule : Dict String Int
+        complexityPerModule =
+            Dict.fromList complexityForModules
+    in
+    Rule.newProjectRuleSchema "CognitiveComplexity" {}
+        |> Rule.withModuleVisitor moduleVisitor
+        |> Rule.withModuleContext
+            { fromProjectToModule = fromProjectToModule complexityPerModule threshold
+            , fromModuleToProject = fromModuleToProject
+            , foldProjectContexts = foldProjectContexts
+            }
+        |> Rule.fromProjectRuleSchema
+
+
+fromModuleToProject _ _ _ =
+    {}
+
+
+foldProjectContexts : ProjectContext -> ProjectContext -> ProjectContext
+foldProjectContexts _ _ =
+    {}
 
 
 moduleVisitor : Rule.ModuleRuleSchema schemaState ModuleContext -> Rule.ModuleRuleSchema { schemaState | hasAtLeastOneVisitor : () } ModuleContext
@@ -248,6 +268,21 @@ type IncreaseKind
     | Operator String
     | RecursiveCall
     | IndirectRecursiveCall String
+
+
+fromProjectToModule : Dict String Int -> Int -> c -> Node ModuleName -> ProjectContext -> ModuleContext
+fromProjectToModule complexityPerModule threshold _ moduleName _ =
+    { threshold =
+        Dict.get (String.join "." (Node.value moduleName)) complexityPerModule
+            |> Maybe.withDefault threshold
+    , nesting = 0
+    , operandsToIgnore = []
+    , elseIfToIgnore = []
+    , rangesWhereNestingIncreases = []
+    , references = Dict.empty
+    , increases = []
+    , functionsToReport = []
+    }
 
 
 initialContext : List ( String, Int ) -> Int -> Rule.ContextCreator () ModuleContext
