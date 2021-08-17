@@ -209,7 +209,7 @@ rule2 complexityForModules threshold =
             , fromModuleToProject = fromModuleToProject
             , foldProjectContexts = foldProjectContexts
             }
-        |> Rule.withFinalProjectEvaluation finalProjectEvaluation
+        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation complexityPerModule)
         |> Rule.fromProjectRuleSchema
 
 
@@ -613,8 +613,8 @@ finalModuleEvaluation context =
         context.functionsToReport
 
 
-finalProjectEvaluation : ProjectContext -> List (Rule.Error scope)
-finalProjectEvaluation projectContext =
+finalProjectEvaluation : Dict String Int -> ProjectContext -> List (Rule.Error scope)
+finalProjectEvaluation complexityPerModule projectContext =
     if True then
         [ Rule.globalError
             { message = "Congratulations, you have made your code less complex than before!"
