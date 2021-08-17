@@ -246,7 +246,9 @@ initialContext complexityForModules threshold =
     in
     Rule.initContextCreator
         (\metadata () ->
-            { threshold = threshold
+            { threshold =
+                Dict.get (Rule.moduleNameFromMetadata metadata |> String.join ".") complexityPerModule
+                    |> Maybe.withDefault threshold
             , nesting = 0
             , operandsToIgnore = []
             , elseIfToIgnore = []
