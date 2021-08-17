@@ -209,6 +209,7 @@ rule2 complexityForModules threshold =
             , fromModuleToProject = fromModuleToProject
             , foldProjectContexts = foldProjectContexts
             }
+        |> Rule.withFinalProjectEvaluation finalProjectEvaluation
         |> Rule.fromProjectRuleSchema
 
 
@@ -610,6 +611,11 @@ finalModuleEvaluation context =
                 Nothing
         )
         context.functionsToReport
+
+
+finalProjectEvaluation : ProjectContext -> List (Rule.Error scope)
+finalProjectEvaluation projectContext =
+    []
 
 
 explanation : List String
