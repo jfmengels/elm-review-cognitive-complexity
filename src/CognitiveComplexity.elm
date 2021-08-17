@@ -9,11 +9,9 @@ module CognitiveComplexity exposing
 
 -}
 
--- TODO Report error when thresholds can be brought down
--- TODO Report error when module is under the allowed threshold
--- TODO Take the file path to the configuration settings
--- TODO re-generate the whole list and suggest to copy-paste
--- Name it cognitiveComplexityThresholds
+-- TODO Change config to list (perf?) or to records (readability?), but need to choose.
+-- Name it *config* cognitiveComplexityThresholds?
+-- TODO Add config to generate complexity only
 
 import Dict exposing (Dict)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
