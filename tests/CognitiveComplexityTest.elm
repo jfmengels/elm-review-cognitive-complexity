@@ -564,6 +564,15 @@ perModuleThresholdTests =
                 sourceCodeWithComplexity6
                     |> Review.Test.run (rule2 [ ( "A", 6 ) ] 3)
                     |> Review.Test.expectNoErrors
+        , test "should print out new configuration if threshold can be made lower" <|
+            \() ->
+                sourceCodeWithComplexity6
+                    |> Review.Test.run (rule2 [ ( "A", 8 ) ] 3)
+                    |> Review.Test.expectGlobalErrors
+                        [ { message = "Congratulations, you have made your code less complex than before!"
+                          , details = [ "Great!" ]
+                          }
+                        ]
         ]
 
 
