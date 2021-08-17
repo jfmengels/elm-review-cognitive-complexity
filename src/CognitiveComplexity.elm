@@ -196,7 +196,7 @@ rule threshold =
 
 
 rule2 : List ( String, Int ) -> Int -> Rule
-rule2 thresholdList threshold =
+rule2 thresholdList globalThreshold =
     let
         thresholdPerModule : Dict String Int
         thresholdPerModule =
@@ -205,11 +205,11 @@ rule2 thresholdList threshold =
     Rule.newProjectRuleSchema "CognitiveComplexity" { hasErrors = False, thresholdPerModule = [] }
         |> Rule.withModuleVisitor moduleVisitor
         |> Rule.withModuleContext
-            { fromProjectToModule = fromProjectToModule thresholdPerModule threshold
-            , fromModuleToProject = fromModuleToProject thresholdPerModule threshold
+            { fromProjectToModule = fromProjectToModule thresholdPerModule globalThreshold
+            , fromModuleToProject = fromModuleToProject thresholdPerModule globalThreshold
             , foldProjectContexts = foldProjectContexts
             }
-        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation thresholdPerModule)
+        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation thresholdPerModule globalThreshold)
         |> Rule.fromProjectRuleSchema
 
 
@@ -700,12 +700,17 @@ finalModuleEvaluation context =
         context.functionsToReport
 
 
-finalProjectEvaluation : Dict String Int -> ProjectContext -> List (Rule.Error scope)
-finalProjectEvaluation thresholdPerModule projectContext =
+finalProjectEvaluation : Dict String Int -> Int -> ProjectContext -> List (Rule.Error scope)
+finalProjectEvaluation thresholdPerModule globalThreshold projectContext =
     if projectContext.hasErrors || Dict.fromList projectContext.thresholdPerModule == thresholdPerModule then
         []
 
     else
+        let
+            suppressions : ( String, Int ) -> String
+            suppressions ( moduleName, threshold ) =
+                "{ moduleName = \"" ++ moduleName ++ "\", threshold = " ++ String.fromInt threshold ++ " }"
+        in
         [ Rule.globalError
             { message = "Congratulations, you have made your code less complex than before!"
             , details =
@@ -723,14 +728,13 @@ import CognitiveComplexity
 
 config : CognitiveComplexity.Config
 config =
-    { threshold = 10
+    { threshold = """ ++ String.fromInt globalThreshold ++ """
     , suppressions = suppressions
     }
 
 suppressions : List ( String, Int )
 suppressions =
-    [ { moduleName = "Some.Module", threshold = 64 }
-    , { moduleName = "Some.Other.Module", threshold = 14 }
+    [ """ ++ String.join "\n    , " (List.map suppressions projectContext.thresholdPerModule) ++ """
     ]"""
                 ]
             }
