@@ -1,6 +1,7 @@
 module CognitiveComplexityTest exposing (all)
 
-import CognitiveComplexity exposing (rule)
+import CognitiveComplexity exposing (rule, rule2)
+import Dict exposing (Dict)
 import Elm.Syntax.Range exposing (Range)
 import Expect exposing (Expectation)
 import Review.Test
@@ -512,6 +513,7 @@ Line 6: +2 for the if expression (including 1 for nesting)
                           , details = [ "Line 14: +1 for the if expression" ]
                           }
                         ]
+        , perModuleThresholdTests
         ]
 
 
@@ -524,6 +526,46 @@ expect functionComplexities source =
                 (\{ name, complexity, details } ->
                     Review.Test.error
                         { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed -1"
+                        , details = explanation ++ details
+                        , under = name
+                        }
+                )
+                functionComplexities
+            )
+
+
+perModuleThresholdTests : Test
+perModuleThresholdTests =
+    describe "Per module thresholds"
+        [ test "should use the default threshold for an unknown module" <|
+            \() ->
+                """module A exposing (..)
+fun n =
+    if cond then        -- +1
+      1
+    else
+      2
+"""
+                    |> expectForModules [ ( "Unknown", -2 ) ]
+                        [ { name = "fun"
+                          , complexity = 1
+                          , details = [ String.trim """
+Line 3: +1 for the if expression
+""" ]
+                          }
+                        ]
+        ]
+
+
+expectForModules : List ( String, Int ) -> List { name : String, complexity : Int, details : List String } -> String -> Expectation
+expectForModules complexityForModules functionComplexities source =
+    source
+        |> Review.Test.run (rule2 complexityForModules -10)
+        |> Review.Test.expectErrors
+            (List.map
+                (\{ name, complexity, details } ->
+                    Review.Test.error
+                        { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed -10"
                         , details = explanation ++ details
                         , under = name
                         }

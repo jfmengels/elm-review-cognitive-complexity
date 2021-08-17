@@ -1,4 +1,7 @@
-module CognitiveComplexity exposing (rule)
+module CognitiveComplexity exposing
+    ( rule
+    , rule2
+    )
 
 {-|
 
@@ -180,6 +183,16 @@ Thanks to G. Ann Campbell for the different talks she made on the subject.
 -}
 rule : Int -> Rule
 rule threshold =
+    Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext threshold)
+        |> Rule.withDeclarationExitVisitor declarationExitVisitor
+        |> Rule.withExpressionEnterVisitor expressionEnterVisitor
+        |> Rule.withExpressionExitVisitor expressionExitVisitor
+        |> Rule.withFinalModuleEvaluation finalEvaluation
+        |> Rule.fromModuleRuleSchema
+
+
+rule2 : List ( String, Int ) -> Int -> Rule
+rule2 complexityForModules threshold =
     Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext threshold)
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
