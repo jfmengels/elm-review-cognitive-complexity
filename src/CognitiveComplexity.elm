@@ -189,7 +189,8 @@ rule threshold =
 
 
 type alias Context =
-    { nesting : Int
+    { threshold : Int
+    , nesting : Int
     , operandsToIgnore : List Range
     , elseIfToIgnore : List Range
     , rangesWhereNestingIncreases : List Range
@@ -227,7 +228,8 @@ initialContext : Int -> Rule.ContextCreator () Context
 initialContext threshold =
     Rule.initContextCreator
         (\() ->
-            { nesting = 0
+            { threshold = threshold
+            , nesting = 0
             , operandsToIgnore = []
             , elseIfToIgnore = []
             , rangesWhereNestingIncreases = []
@@ -447,7 +449,8 @@ declarationExitVisitor node context =
                     context.functionsToReport
     in
     ( []
-    , { nesting = 0
+    , { threshold = context.threshold
+      , nesting = 0
       , operandsToIgnore = []
       , elseIfToIgnore = []
       , rangesWhereNestingIncreases = []
