@@ -196,20 +196,20 @@ rule threshold =
 
 
 rule2 : List ( String, Int ) -> Int -> Rule
-rule2 complexityForModules threshold =
+rule2 thresholdList threshold =
     let
-        complexityPerModule : Dict String Int
-        complexityPerModule =
-            Dict.fromList complexityForModules
+        thresholdPerModule : Dict String Int
+        thresholdPerModule =
+            Dict.fromList thresholdList
     in
     Rule.newProjectRuleSchema "CognitiveComplexity" {}
         |> Rule.withModuleVisitor moduleVisitor
         |> Rule.withModuleContext
-            { fromProjectToModule = fromProjectToModule complexityPerModule threshold
+            { fromProjectToModule = fromProjectToModule thresholdPerModule threshold
             , fromModuleToProject = fromModuleToProject
             , foldProjectContexts = foldProjectContexts
             }
-        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation complexityPerModule)
+        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation thresholdPerModule)
         |> Rule.fromProjectRuleSchema
 
 
@@ -273,9 +273,9 @@ type IncreaseKind
 
 
 fromProjectToModule : Dict String Int -> Int -> c -> Node ModuleName -> ProjectContext -> ModuleContext
-fromProjectToModule complexityPerModule threshold _ moduleName _ =
+fromProjectToModule thresholdPerModule threshold _ moduleName _ =
     { threshold =
-        Dict.get (String.join "." (Node.value moduleName)) complexityPerModule
+        Dict.get (String.join "." (Node.value moduleName)) thresholdPerModule
             |> Maybe.withDefault threshold
     , nesting = 0
     , operandsToIgnore = []
@@ -290,14 +290,14 @@ fromProjectToModule complexityPerModule threshold _ moduleName _ =
 initialContext : List ( String, Int ) -> Int -> Rule.ContextCreator () ModuleContext
 initialContext complexityForModules threshold =
     let
-        complexityPerModule : Dict String Int
-        complexityPerModule =
+        thresholdPerModule : Dict String Int
+        thresholdPerModule =
             Dict.fromList complexityForModules
     in
     Rule.initContextCreator
         (\metadata () ->
             { threshold =
-                Dict.get (Rule.moduleNameFromMetadata metadata |> String.join ".") complexityPerModule
+                Dict.get (Rule.moduleNameFromMetadata metadata |> String.join ".") thresholdPerModule
                     |> Maybe.withDefault threshold
             , nesting = 0
             , operandsToIgnore = []
@@ -614,7 +614,7 @@ finalModuleEvaluation context =
 
 
 finalProjectEvaluation : Dict String Int -> ProjectContext -> List (Rule.Error scope)
-finalProjectEvaluation complexityPerModule projectContext =
+finalProjectEvaluation thresholdPerModule projectContext =
     if True then
         [ Rule.globalError
             { message = "Congratulations, you have made your code less complex than before!"
