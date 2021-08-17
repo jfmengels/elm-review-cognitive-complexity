@@ -201,7 +201,7 @@ rule2 complexityForModules threshold =
         |> Rule.fromModuleRuleSchema
 
 
-moduleVisitor : Rule.ModuleRuleSchema schemaState Context -> Rule.ModuleRuleSchema { schemaState | hasAtLeastOneVisitor : () } Context
+moduleVisitor : Rule.ModuleRuleSchema schemaState ModuleContext -> Rule.ModuleRuleSchema { schemaState | hasAtLeastOneVisitor : () } ModuleContext
 moduleVisitor schema =
     schema
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
@@ -214,7 +214,7 @@ type alias ProjectContext =
     {}
 
 
-type alias Context =
+type alias ModuleContext =
     { threshold : Int
     , nesting : Int
     , operandsToIgnore : List Range
@@ -250,7 +250,7 @@ type IncreaseKind
     | IndirectRecursiveCall String
 
 
-initialContext : List ( String, Int ) -> Int -> Rule.ContextCreator () Context
+initialContext : List ( String, Int ) -> Int -> Rule.ContextCreator () ModuleContext
 initialContext complexityForModules threshold =
     let
         complexityPerModule : Dict String Int
@@ -274,7 +274,7 @@ initialContext complexityForModules threshold =
         |> Rule.withMetadata
 
 
-expressionEnterVisitor : Node Expression -> Context -> ( List nothing, Context )
+expressionEnterVisitor : Node Expression -> ModuleContext -> ( List nothing, ModuleContext )
 expressionEnterVisitor node context =
     if List.member (Node.range node) context.rangesWhereNestingIncreases then
         ( [], expressionEnterVisitorHelp node { context | nesting = context.nesting + 1 } )
@@ -283,7 +283,7 @@ expressionEnterVisitor node context =
         ( [], expressionEnterVisitorHelp node context )
 
 
-expressionEnterVisitorHelp : Node Expression -> Context -> Context
+expressionEnterVisitorHelp : Node Expression -> ModuleContext -> ModuleContext
 expressionEnterVisitorHelp node context =
     case Node.value node of
         Expression.IfBlock _ _ else_ ->
@@ -437,7 +437,7 @@ incrementAndIgnore parentOperator node =
             ( [], [] )
 
 
-expressionExitVisitor : Node Expression -> Context -> ( List nothing, Context )
+expressionExitVisitor : Node Expression -> ModuleContext -> ( List nothing, ModuleContext )
 expressionExitVisitor node context =
     if List.member (Node.range node) context.rangesWhereNestingIncreases then
         ( [], expressionExitVisitorHelp node { context | nesting = context.nesting - 1 } )
@@ -446,7 +446,7 @@ expressionExitVisitor node context =
         ( [], expressionExitVisitorHelp node context )
 
 
-expressionExitVisitorHelp : Node Expression -> Context -> Context
+expressionExitVisitorHelp : Node Expression -> ModuleContext -> ModuleContext
 expressionExitVisitorHelp node context =
     case Node.value node of
         Expression.IfBlock _ _ _ ->
@@ -466,7 +466,7 @@ expressionExitVisitorHelp node context =
             context
 
 
-declarationExitVisitor : Node Declaration -> Context -> ( List (Rule.Error {}), Context )
+declarationExitVisitor : Node Declaration -> ModuleContext -> ( List (Rule.Error {}), ModuleContext )
 declarationExitVisitor node context =
     let
         functionsToReport : List FunctionToReport
@@ -495,7 +495,7 @@ declarationExitVisitor node context =
     )
 
 
-finalEvaluation : Context -> List (Rule.Error {})
+finalEvaluation : ModuleContext -> List (Rule.Error {})
 finalEvaluation context =
     let
         potentialRecursiveFunctions : Set String
