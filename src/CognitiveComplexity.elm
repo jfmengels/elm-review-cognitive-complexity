@@ -615,7 +615,7 @@ finalModuleEvaluation context =
 
 finalProjectEvaluation : Dict String Int -> ProjectContext -> List (Rule.Error scope)
 finalProjectEvaluation thresholdPerModule projectContext =
-    if True then
+    if projectContext.hasNoErrors && projectContext.thresholdPerModule /= thresholdPerModule then
         [ Rule.globalError
             { message = "Congratulations, you have made your code less complex than before!"
             , details = [ "Great!" ]
