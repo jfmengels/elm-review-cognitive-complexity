@@ -231,7 +231,7 @@ fromModuleToProject thresholdPerModule globalThreshold _ moduleNameNode moduleCo
     in
     { hasErrors = maxComplexityInModule > threshold
     , thresholdPerModule =
-        if maxComplexityInModule > threshold then
+        if maxComplexityInModule > globalThreshold then
             [ ( moduleName, maxComplexityInModule ) ]
 
         else
