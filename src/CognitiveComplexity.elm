@@ -239,6 +239,11 @@ type IncreaseKind
 
 initialContext : List ( String, Int ) -> Int -> Rule.ContextCreator () Context
 initialContext complexityForModules threshold =
+    let
+        complexityPerModule : Dict String Int
+        complexityPerModule =
+            Dict.fromList complexityForModules
+    in
     Rule.initContextCreator
         (\metadata () ->
             { threshold = threshold
