@@ -546,7 +546,9 @@ fun n =
     else
       2
 """
-                    |> expectForModules [ ( "Unknown", -2 ) ]
+                    |> expectForModules
+                        -10
+                        [ ( "Unknown", -2 ) ]
                         [ { name = "fun"
                           , complexity = 1
                           , details = [ String.trim """
@@ -557,15 +559,15 @@ Line 3: +1 for the if expression
         ]
 
 
-expectForModules : List ( String, Int ) -> List { name : String, complexity : Int, details : List String } -> String -> Expectation
-expectForModules complexityForModules functionComplexities source =
+expectForModules : Int -> List ( String, Int ) -> List { name : String, complexity : Int, details : List String } -> String -> Expectation
+expectForModules allowedComplexity complexityForModules functionComplexities source =
     source
         |> Review.Test.run (rule2 complexityForModules -10)
         |> Review.Test.expectErrors
             (List.map
                 (\{ name, complexity, details } ->
                     Review.Test.error
-                        { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed -10"
+                        { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed " ++ String.fromInt allowedComplexity
                         , details = explanation ++ details
                         , under = name
                         }
