@@ -206,16 +206,22 @@ rule2 thresholdList threshold =
         |> Rule.withModuleVisitor moduleVisitor
         |> Rule.withModuleContext
             { fromProjectToModule = fromProjectToModule thresholdPerModule threshold
-            , fromModuleToProject = fromModuleToProject
+            , fromModuleToProject = fromModuleToProject thresholdPerModule threshold
             , foldProjectContexts = foldProjectContexts
             }
         |> Rule.withFinalProjectEvaluation (finalProjectEvaluation thresholdPerModule)
         |> Rule.fromProjectRuleSchema
 
 
-fromModuleToProject : a -> Node ModuleName -> ModuleContext -> ProjectContext
-fromModuleToProject _ moduleName moduleContext =
-    { hasErrors = moduleContext.hasErrors
+fromModuleToProject : Dict String Int -> Int -> a -> Node ModuleName -> ModuleContext -> ProjectContext
+fromModuleToProject thresholdPerModule globalThreshold _ moduleName moduleContext =
+    let
+        threshold : Int
+        threshold =
+            Dict.get (String.join "." (Node.value moduleName)) thresholdPerModule
+                |> Maybe.withDefault globalThreshold
+    in
+    { hasErrors = maxComplexity moduleContext > threshold
     }
 
 
@@ -277,10 +283,10 @@ type IncreaseKind
 
 
 fromProjectToModule : Dict String Int -> Int -> c -> Node ModuleName -> ProjectContext -> ModuleContext
-fromProjectToModule thresholdPerModule threshold _ moduleName _ =
+fromProjectToModule thresholdPerModule globalThreshold _ moduleName _ =
     { threshold =
         Dict.get (String.join "." (Node.value moduleName)) thresholdPerModule
-            |> Maybe.withDefault threshold
+            |> Maybe.withDefault globalThreshold
     , nesting = 0
     , operandsToIgnore = []
     , elseIfToIgnore = []
