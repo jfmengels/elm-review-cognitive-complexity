@@ -615,7 +615,11 @@ finalModuleEvaluation context =
 
 finalProjectEvaluation : ProjectContext -> List (Rule.Error scope)
 finalProjectEvaluation projectContext =
-    []
+    if True then
+        []
+
+    else
+        []
 
 
 explanation : List String
