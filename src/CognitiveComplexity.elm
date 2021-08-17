@@ -214,8 +214,8 @@ rule2 thresholdList threshold =
 
 
 fromModuleToProject : a -> Node ModuleName -> ModuleContext -> ProjectContext
-fromModuleToProject _ moduleName _ =
-    { hasErrors = False
+fromModuleToProject _ moduleName moduleContext =
+    { hasErrors = moduleContext.hasErrors
     }
 
 
@@ -248,6 +248,7 @@ type alias ModuleContext =
     , increases : List Increase
     , references : Dict String Location
     , functionsToReport : List FunctionToReport
+    , hasErrors : Bool
     }
 
 
@@ -287,6 +288,7 @@ fromProjectToModule thresholdPerModule threshold _ moduleName _ =
     , references = Dict.empty
     , increases = []
     , functionsToReport = []
+    , hasErrors = False
     }
 
 
@@ -309,6 +311,7 @@ initialContext complexityForModules threshold =
             , references = Dict.empty
             , increases = []
             , functionsToReport = []
+            , hasErrors = False
             }
         )
         |> Rule.withMetadata
@@ -531,6 +534,7 @@ declarationExitVisitor node context =
       , references = Dict.empty
       , increases = []
       , functionsToReport = functionsToReport
+      , hasErrors = False
       }
     )
 
