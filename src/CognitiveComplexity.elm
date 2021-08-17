@@ -228,7 +228,7 @@ moduleVisitor schema =
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
-        |> Rule.withFinalModuleEvaluation finalEvaluation
+        |> Rule.withFinalModuleEvaluation finalModuleEvaluation
 
 
 type alias ProjectContext =
@@ -531,8 +531,8 @@ declarationExitVisitor node context =
     )
 
 
-finalEvaluation : ModuleContext -> List (Rule.Error {})
-finalEvaluation context =
+finalModuleEvaluation : ModuleContext -> List (Rule.Error {})
+finalModuleEvaluation context =
     let
         potentialRecursiveFunctions : Set String
         potentialRecursiveFunctions =
