@@ -227,7 +227,7 @@ type IncreaseKind
 initialContext : Int -> Rule.ContextCreator () Context
 initialContext threshold =
     Rule.initContextCreator
-        (\() ->
+        (\metadata () ->
             { threshold = threshold
             , nesting = 0
             , operandsToIgnore = []
@@ -238,6 +238,7 @@ initialContext threshold =
             , functionsToReport = []
             }
         )
+        |> Rule.withMetadata
 
 
 expressionEnterVisitor : Node Expression -> Context -> ( List nothing, Context )
