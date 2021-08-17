@@ -180,7 +180,7 @@ Thanks to G. Ann Campbell for the different talks she made on the subject.
 -}
 rule : Int -> Rule
 rule threshold =
-    Rule.newModuleRuleSchema "CognitiveComplexity" initialContext
+    Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" initialContext
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
@@ -223,16 +223,19 @@ type IncreaseKind
     | IndirectRecursiveCall String
 
 
-initialContext : Context
+initialContext : Rule.ContextCreator () Context
 initialContext =
-    { nesting = 0
-    , operandsToIgnore = []
-    , elseIfToIgnore = []
-    , rangesWhereNestingIncreases = []
-    , references = Dict.empty
-    , increases = []
-    , functionsToReport = []
-    }
+    Rule.initContextCreator
+        (\() ->
+            { nesting = 0
+            , operandsToIgnore = []
+            , elseIfToIgnore = []
+            , rangesWhereNestingIncreases = []
+            , references = Dict.empty
+            , increases = []
+            , functionsToReport = []
+            }
+        )
 
 
 expressionEnterVisitor : Node Expression -> Context -> ( List nothing, Context )
