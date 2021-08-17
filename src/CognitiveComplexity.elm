@@ -212,7 +212,8 @@ rule2 complexityForModules threshold =
         |> Rule.fromProjectRuleSchema
 
 
-fromModuleToProject _ _ _ =
+fromModuleToProject : a -> Node ModuleName -> ModuleContext -> ProjectContext
+fromModuleToProject _ moduleName _ =
     {}
 
 
