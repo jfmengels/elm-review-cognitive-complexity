@@ -559,6 +559,11 @@ perModuleThresholdTests =
                             , under = "fun"
                             }
                         ]
+        , test "should not report an error if the function is at the threshold" <|
+            \() ->
+                sourceCodeWithComplexity6
+                    |> Review.Test.run (rule2 [ ( "A", 6 ) ] 3)
+                    |> Review.Test.expectNoErrors
         ]
 
 
