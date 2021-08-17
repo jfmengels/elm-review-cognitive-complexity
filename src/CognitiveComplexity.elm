@@ -184,7 +184,7 @@ rule threshold =
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
-        |> Rule.withFinalModuleEvaluation (finalEvaluation threshold)
+        |> Rule.withFinalModuleEvaluation finalEvaluation
         |> Rule.fromModuleRuleSchema
 
 
@@ -461,8 +461,8 @@ declarationExitVisitor node context =
     )
 
 
-finalEvaluation : Int -> Context -> List (Rule.Error {})
-finalEvaluation threshold context =
+finalEvaluation : Context -> List (Rule.Error {})
+finalEvaluation context =
     let
         potentialRecursiveFunctions : Set String
         potentialRecursiveFunctions =
@@ -517,10 +517,10 @@ finalEvaluation threshold context =
                 finalComplexity =
                     List.sum (List.map .increase allIncreases)
             in
-            if finalComplexity > threshold then
+            if finalComplexity > context.threshold then
                 Just
                     (Rule.error
-                        { message = Node.value functionName ++ " has a cognitive complexity of " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
+                        { message = Node.value functionName ++ " has a cognitive complexity of " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt context.threshold
                         , details =
                             if List.isEmpty allIncreases then
                                 explanation
