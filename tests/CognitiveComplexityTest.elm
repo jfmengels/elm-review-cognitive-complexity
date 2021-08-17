@@ -547,7 +547,7 @@ fun n =
       2
 """
                     |> expectForModules
-                        -10
+                        -2
                         [ ( "Unknown", -2 ) ]
                         [ { name = "fun"
                           , complexity = 1
