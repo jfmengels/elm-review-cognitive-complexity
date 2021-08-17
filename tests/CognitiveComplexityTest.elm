@@ -585,14 +585,13 @@ import CognitiveComplexity
 
 config : CognitiveComplexity.Config
 config =
-    { threshold = 10
+    { threshold = 3
     , suppressions = suppressions
     }
 
 suppressions : List ( String, Int )
 suppressions =
-    [ { moduleName = "Some.Module", threshold = 64 }
-    , { moduleName = "Some.Other.Module", threshold = 14 }
+    [ { moduleName = "A", threshold = 6 }
     ]"""
                                 ]
                           }
