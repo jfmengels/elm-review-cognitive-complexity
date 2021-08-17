@@ -539,60 +539,68 @@ perModuleThresholdTests =
     describe "Per module thresholds"
         [ test "should use the default threshold for an unknown module" <|
             \() ->
-                """module A exposing (..)
-fun n =
-    if cond then        -- +1
-      1
-    else
-      2
-"""
-                    |> expectForModules
-                        -10
-                        [ ( "Unknown", -2 ) ]
-                        [ { name = "fun"
-                          , complexity = 1
-                          , details = [ String.trim """
+                sourceCodeWithComplexity6
+                    |> Review.Test.run (rule2 [ ( "Unknown", 5 ) ] 3)
+                    |> Review.Test.expectErrors
+                        (List.map
+                            (\{ name, complexity, details } ->
+                                Review.Test.error
+                                    { message = name ++ " has a cognitive complexity of 6, higher than the allowed 3"
+                                    , details = explanation ++ details
+                                    , under = name
+                                    }
+                            )
+                            [ { name = "fun"
+                              , complexity = 1
+                              , details = [ String.trim """
 Line 3: +1 for the if expression
+Line 4: +2 for the if expression (including 1 for nesting)
+Line 5: +3 for the if expression (including 2 for nesting)
 """ ]
-                          }
-                        ]
+                              }
+                            ]
+                        )
         , test "should use the found threshold for a module with one" <|
             \() ->
-                """module A exposing (..)
-fun n =
-    if cond then        -- +1
-      1
-    else
-      2
-"""
-                    |> expectForModules
-                        -2
-                        [ ( "A", -2 ) ]
-                        [ { name = "fun"
-                          , complexity = 1
-                          , details = [ String.trim """
+                sourceCodeWithComplexity6
+                    |> Review.Test.run (rule2 [ ( "A", 5 ) ] 3)
+                    |> Review.Test.expectErrors
+                        (List.map
+                            (\{ name, complexity, details } ->
+                                Review.Test.error
+                                    { message = name ++ " has a cognitive complexity of 6, higher than the allowed 5"
+                                    , details = explanation ++ details
+                                    , under = name
+                                    }
+                            )
+                            [ { name = "fun"
+                              , complexity = 1
+                              , details = [ String.trim """
 Line 3: +1 for the if expression
+Line 4: +2 for the if expression (including 1 for nesting)
+Line 5: +3 for the if expression (including 2 for nesting)
 """ ]
-                          }
-                        ]
+                              }
+                            ]
+                        )
         ]
 
 
-expectForModules : Int -> List ( String, Int ) -> List { name : String, complexity : Int, details : List String } -> String -> Expectation
-expectForModules allowedComplexity complexityForModules functionComplexities source =
-    source
-        |> Review.Test.run (rule2 complexityForModules -10)
-        |> Review.Test.expectErrors
-            (List.map
-                (\{ name, complexity, details } ->
-                    Review.Test.error
-                        { message = name ++ " has a cognitive complexity of " ++ String.fromInt complexity ++ ", higher than the allowed " ++ String.fromInt allowedComplexity
-                        , details = explanation ++ details
-                        , under = name
-                        }
-                )
-                functionComplexities
-            )
+sourceCodeWithComplexity6 : String
+sourceCodeWithComplexity6 =
+    """module A exposing (..)
+fun n =
+    if cond then        -- +1
+      if cond then      -- +2
+        if cond then    -- +3
+          1
+        else
+          2
+      else
+        2
+    else
+      2
+"""
 
 
 expectAtExactly : List { name : String, complexity : Int, details : List String, atExactly : Range } -> String -> Expectation
