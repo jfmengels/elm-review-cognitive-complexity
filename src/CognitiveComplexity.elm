@@ -539,6 +539,64 @@ declarationExitVisitor node context =
     )
 
 
+maxComplexity : ModuleContext -> Int
+maxComplexity context =
+    let
+        potentialRecursiveFunctions : Set String
+        potentialRecursiveFunctions =
+            List.map (.functionName >> Node.value) context.functionsToReport
+                |> Set.fromList
+
+        recursiveCalls : RecursiveCalls
+        recursiveCalls =
+            context.functionsToReport
+                |> List.map
+                    (\{ functionName, references } ->
+                        ( Node.value functionName, Dict.filter (\name _ -> Set.member name potentialRecursiveFunctions) references )
+                    )
+                |> Dict.fromList
+                |> findRecursiveCalls
+    in
+    List.map
+        (\{ functionName, increases, references } ->
+            let
+                recursiveCallsForFunctionName : List String
+                recursiveCallsForFunctionName =
+                    Dict.get (Node.value functionName) recursiveCalls
+                        |> Maybe.withDefault Set.empty
+                        |> Set.toList
+
+                allIncreases : List Increase
+                allIncreases =
+                    List.concat
+                        [ increases
+                        , recursiveCallsForFunctionName
+                            |> List.filterMap
+                                (\referenceToRecursiveFunction ->
+                                    Dict.get referenceToRecursiveFunction references
+                                        |> Maybe.map (Tuple.pair referenceToRecursiveFunction)
+                                )
+                            |> List.map
+                                (\( reference, location ) ->
+                                    { line = location
+                                    , increase = 1
+                                    , nesting = 0
+                                    , kind =
+                                        if Node.value functionName == reference then
+                                            RecursiveCall
+
+                                        else
+                                            IndirectRecursiveCall reference
+                                    }
+                                )
+                        ]
+            in
+            List.sum (List.map .increase allIncreases)
+        )
+        context.functionsToReport
+        |> List.foldl Basics.max 0
+
+
 finalModuleEvaluation : ModuleContext -> List (Rule.Error {})
 finalModuleEvaluation context =
     let
