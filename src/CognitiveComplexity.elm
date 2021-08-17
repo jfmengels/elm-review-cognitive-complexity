@@ -616,7 +616,11 @@ finalModuleEvaluation context =
 finalProjectEvaluation : ProjectContext -> List (Rule.Error scope)
 finalProjectEvaluation projectContext =
     if True then
-        []
+        [ Rule.globalError
+            { message = "Congratulations, you have made your code less complex than before!"
+            , details = [ "Great!" ]
+            }
+        ]
 
     else
         []
