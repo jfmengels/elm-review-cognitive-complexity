@@ -542,47 +542,23 @@ perModuleThresholdTests =
                 sourceCodeWithComplexity6
                     |> Review.Test.run (rule2 [ ( "Unknown", 5 ) ] 3)
                     |> Review.Test.expectErrors
-                        (List.map
-                            (\{ name, complexity, details } ->
-                                Review.Test.error
-                                    { message = name ++ " has a cognitive complexity of 6, higher than the allowed 3"
-                                    , details = explanation ++ details
-                                    , under = name
-                                    }
-                            )
-                            [ { name = "fun"
-                              , complexity = 1
-                              , details = [ String.trim """
-Line 3: +1 for the if expression
-Line 4: +2 for the if expression (including 1 for nesting)
-Line 5: +3 for the if expression (including 2 for nesting)
-""" ]
-                              }
-                            ]
-                        )
+                        [ Review.Test.error
+                            { message = "fun has a cognitive complexity of 6, higher than the allowed 3"
+                            , details = explanation ++ detailsForComplexity6
+                            , under = "fun"
+                            }
+                        ]
         , test "should use the found threshold for a module with one" <|
             \() ->
                 sourceCodeWithComplexity6
                     |> Review.Test.run (rule2 [ ( "A", 5 ) ] 3)
                     |> Review.Test.expectErrors
-                        (List.map
-                            (\{ name, complexity, details } ->
-                                Review.Test.error
-                                    { message = name ++ " has a cognitive complexity of 6, higher than the allowed 5"
-                                    , details = explanation ++ details
-                                    , under = name
-                                    }
-                            )
-                            [ { name = "fun"
-                              , complexity = 1
-                              , details = [ String.trim """
-Line 3: +1 for the if expression
-Line 4: +2 for the if expression (including 1 for nesting)
-Line 5: +3 for the if expression (including 2 for nesting)
-""" ]
-                              }
-                            ]
-                        )
+                        [ Review.Test.error
+                            { message = "fun has a cognitive complexity of 6, higher than the allowed 5"
+                            , details = explanation ++ detailsForComplexity6
+                            , under = "fun"
+                            }
+                        ]
         ]
 
 
@@ -601,6 +577,15 @@ fun n =
     else
       2
 """
+
+
+detailsForComplexity6 : List String
+detailsForComplexity6 =
+    [ String.trim """
+Line 3: +1 for the if expression
+Line 4: +2 for the if expression (including 1 for nesting)
+Line 5: +3 for the if expression (including 2 for nesting)
+""" ]
 
 
 expectAtExactly : List { name : String, complexity : Int, details : List String, atExactly : Range } -> String -> Expectation
