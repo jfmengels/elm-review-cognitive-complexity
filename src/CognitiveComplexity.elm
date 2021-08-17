@@ -180,7 +180,7 @@ Thanks to G. Ann Campbell for the different talks she made on the subject.
 -}
 rule : Int -> Rule
 rule threshold =
-    Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" initialContext
+    Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext threshold)
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
@@ -223,8 +223,8 @@ type IncreaseKind
     | IndirectRecursiveCall String
 
 
-initialContext : Rule.ContextCreator () Context
-initialContext =
+initialContext : Int -> Rule.ContextCreator () Context
+initialContext threshold =
     Rule.initContextCreator
         (\() ->
             { nesting = 0
