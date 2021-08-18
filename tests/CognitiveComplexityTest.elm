@@ -589,7 +589,7 @@ config =
     , suppressions = suppressions
     }
 
-suppressions : List ( String, Int )
+suppressions : List { moduleName : String, threshold : Int }
 suppressions =
     [ { moduleName = "A", threshold = 6 }
     ]"""
@@ -629,7 +629,7 @@ config =
     , suppressions = suppressions
     }
 
-suppressions : List ( String, Int )
+suppressions : List { moduleName : String, threshold : Int }
 suppressions =
     [ { moduleName = "Z", threshold = 10 }
     , { moduleName = "A", threshold = 6 }
@@ -664,7 +664,7 @@ config =
     , suppressions = suppressions
     }
 
-suppressions : List ( String, Int )
+suppressions : List { moduleName : String, threshold : Int }
 suppressions =
     [ { moduleName = "Z", threshold = 10 }
     ]"""

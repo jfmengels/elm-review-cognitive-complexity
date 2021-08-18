@@ -764,7 +764,7 @@ config =
     , suppressions = suppressions
     }
 
-suppressions : List ( String, Int )
+suppressions : List { moduleName : String, threshold : Int }
 suppressions =
     [ """ ++ suppressionList ++ """
     ]"""
