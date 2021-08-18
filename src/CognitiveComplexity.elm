@@ -717,6 +717,10 @@ finalProjectEvaluation thresholdPerModule globalThreshold projectContext =
 
     else
         let
+            suppressionList : String
+            suppressionList =
+                String.join "\n    , " (List.map suppressions (Dict.toList newThresholdPerModule))
+
             suppressions : ( String, Int ) -> String
             suppressions ( moduleName, threshold ) =
                 "{ moduleName = \"" ++ moduleName ++ "\", threshold = " ++ String.fromInt threshold ++ " }"
@@ -744,7 +748,7 @@ config =
 
 suppressions : List ( String, Int )
 suppressions =
-    [ """ ++ String.join "\n    , " (List.map suppressions (Dict.toList newThresholdPerModule)) ++ """
+    [ """ ++ suppressionList ++ """
     ]"""
                 ]
             }
