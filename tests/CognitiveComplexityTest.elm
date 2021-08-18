@@ -540,7 +540,7 @@ perModuleThresholdTests =
         [ test "should use the default threshold for an unknown module" <|
             \() ->
                 sourceCodeWithComplexity6
-                    |> Review.Test.run (rule2 [ ( "Unknown", 5 ) ] 3)
+                    |> Review.Test.run (rule2 [ { moduleName = "Unknown", threshold = 5 } ] 3)
                     |> Review.Test.expectErrors
                         [ Review.Test.error
                             { message = "fun has a cognitive complexity of 6, higher than the allowed 3"
@@ -551,7 +551,7 @@ perModuleThresholdTests =
         , test "should use the found threshold for a module with one" <|
             \() ->
                 sourceCodeWithComplexity6
-                    |> Review.Test.run (rule2 [ ( "A", 5 ) ] 3)
+                    |> Review.Test.run (rule2 [ { moduleName = "A", threshold = 5 } ] 3)
                     |> Review.Test.expectErrors
                         [ Review.Test.error
                             { message = "fun has a cognitive complexity of 6, higher than the allowed 5"
@@ -562,12 +562,12 @@ perModuleThresholdTests =
         , test "should not report an error if the function is at the threshold" <|
             \() ->
                 sourceCodeWithComplexity6
-                    |> Review.Test.run (rule2 [ ( "A", 6 ) ] 3)
+                    |> Review.Test.run (rule2 [ { moduleName = "A", threshold = 6 } ] 3)
                     |> Review.Test.expectNoErrors
         , test "should print out new configuration if threshold can be made lower" <|
             \() ->
                 sourceCodeWithComplexity6
-                    |> Review.Test.run (rule2 [ ( "A", 8 ) ] 3)
+                    |> Review.Test.run (rule2 [ { moduleName = "A", threshold = 8 } ] 3)
                     |> Review.Test.expectGlobalErrors
                         [ { message = "Congratulations, you have made your code less complex than before!"
                           , details =

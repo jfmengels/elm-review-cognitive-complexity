@@ -9,7 +9,6 @@ module CognitiveComplexity exposing
 
 -}
 
--- TODO Change config to list (perf?) or to records (readability?), but need to choose.
 -- Name it *config* cognitiveComplexityThresholds?
 -- TODO Add config to generate complexity only
 
@@ -193,12 +192,20 @@ rule threshold =
         |> Rule.fromModuleRuleSchema
 
 
-rule2 : List ( String, Int ) -> Int -> Rule
+type alias ModuleThreshold =
+    { moduleName : String
+    , threshold : Int
+    }
+
+
+rule2 : List { moduleName : String, threshold : Int } -> Int -> Rule
 rule2 thresholdList globalThreshold =
     let
         thresholdPerModule : Dict String Int
         thresholdPerModule =
-            Dict.fromList thresholdList
+            thresholdList
+                |> List.map (\{ moduleName, threshold } -> ( moduleName, threshold ))
+                |> Dict.fromList
     in
     Rule.newProjectRuleSchema "CognitiveComplexity" { hasErrors = False, thresholdPerModule = [] }
         |> Rule.withModuleVisitor moduleVisitor
