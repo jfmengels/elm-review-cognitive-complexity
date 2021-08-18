@@ -1,6 +1,6 @@
 module CognitiveComplexity exposing
     ( rule
-    , generateConfig, rule2
+    , Config, generateConfig, rule2
     )
 
 {-|
@@ -190,6 +190,12 @@ rule threshold =
     Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext [] threshold)
         |> moduleVisitor { reportErrors = True }
         |> Rule.fromModuleRuleSchema
+
+
+type alias Config =
+    { threshold : Int
+    , suppressions : List { moduleName : String, threshold : Int }
+    }
 
 
 type alias ModuleThreshold =
