@@ -721,6 +721,7 @@ finalProjectEvaluation thresholdPerModule globalThreshold projectContext =
             suppressionList =
                 newThresholdPerModule
                     |> Dict.toList
+                    |> List.sortBy (\( moduleName, threshold ) -> ( -threshold, moduleName ))
                     |> List.map formatSuppression
                     |> String.join "\n    , "
         in
