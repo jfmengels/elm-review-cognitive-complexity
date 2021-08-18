@@ -9,8 +9,7 @@ module CognitiveComplexity exposing
 
 -}
 
--- Name it *config* cognitiveComplexityThresholds?
--- TODO Add config to generate complexity only
+-- TODO Name it *config* cognitiveComplexityThresholds?
 
 import Dict exposing (Dict)
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
