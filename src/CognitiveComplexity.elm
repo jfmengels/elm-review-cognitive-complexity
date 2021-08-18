@@ -218,23 +218,16 @@ rule2 thresholdList globalThreshold =
         |> Rule.fromProjectRuleSchema
 
 
-generateConfig : List { moduleName : String, threshold : Int } -> Int -> Rule
-generateConfig thresholdList globalThreshold =
-    let
-        thresholdPerModule : Dict String Int
-        thresholdPerModule =
-            thresholdList
-                |> List.map (\{ moduleName, threshold } -> ( moduleName, threshold ))
-                |> Dict.fromList
-    in
+generateConfig : Int -> Rule
+generateConfig globalThreshold =
     Rule.newProjectRuleSchema "CognitiveComplexity" { hasErrors = False, thresholdPerModule = [] }
         |> Rule.withModuleVisitor (moduleVisitor { reportErrors = False })
         |> Rule.withModuleContext
-            { fromProjectToModule = fromProjectToModule thresholdPerModule globalThreshold
-            , fromModuleToProject = fromModuleToProject thresholdPerModule globalThreshold
+            { fromProjectToModule = fromProjectToModule Dict.empty globalThreshold
+            , fromModuleToProject = fromModuleToProject Dict.empty globalThreshold
             , foldProjectContexts = foldProjectContexts
             }
-        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation thresholdPerModule globalThreshold)
+        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation Dict.empty globalThreshold)
         |> Rule.fromProjectRuleSchema
 
 
