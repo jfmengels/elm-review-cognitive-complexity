@@ -1,6 +1,6 @@
 module CognitiveComplexity exposing
     ( rule
-    , rule2
+    , generateConfig, rule2
     )
 
 {-|
@@ -188,7 +188,7 @@ Thanks to G. Ann Campbell for the different talks she made on the subject.
 rule : Int -> Rule
 rule threshold =
     Rule.newModuleRuleSchemaUsingContextCreator "CognitiveComplexity" (initialContext [] threshold)
-        |> moduleVisitor
+        |> moduleVisitor { reportErrors = True }
         |> Rule.fromModuleRuleSchema
 
 
@@ -208,7 +208,27 @@ rule2 thresholdList globalThreshold =
                 |> Dict.fromList
     in
     Rule.newProjectRuleSchema "CognitiveComplexity" { hasErrors = False, thresholdPerModule = [] }
-        |> Rule.withModuleVisitor moduleVisitor
+        |> Rule.withModuleVisitor (moduleVisitor { reportErrors = True })
+        |> Rule.withModuleContext
+            { fromProjectToModule = fromProjectToModule thresholdPerModule globalThreshold
+            , fromModuleToProject = fromModuleToProject thresholdPerModule globalThreshold
+            , foldProjectContexts = foldProjectContexts
+            }
+        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation thresholdPerModule globalThreshold)
+        |> Rule.fromProjectRuleSchema
+
+
+generateConfig : List { moduleName : String, threshold : Int } -> Int -> Rule
+generateConfig thresholdList globalThreshold =
+    let
+        thresholdPerModule : Dict String Int
+        thresholdPerModule =
+            thresholdList
+                |> List.map (\{ moduleName, threshold } -> ( moduleName, threshold ))
+                |> Dict.fromList
+    in
+    Rule.newProjectRuleSchema "CognitiveComplexity" { hasErrors = False, thresholdPerModule = [] }
+        |> Rule.withModuleVisitor (moduleVisitor { reportErrors = False })
         |> Rule.withModuleContext
             { fromProjectToModule = fromProjectToModule thresholdPerModule globalThreshold
             , fromModuleToProject = fromModuleToProject thresholdPerModule globalThreshold
@@ -251,13 +271,18 @@ foldProjectContexts newContext previousContext =
     }
 
 
-moduleVisitor : Rule.ModuleRuleSchema schemaState ModuleContext -> Rule.ModuleRuleSchema { schemaState | hasAtLeastOneVisitor : () } ModuleContext
-moduleVisitor schema =
+moduleVisitor : { reportErrors : Bool } -> Rule.ModuleRuleSchema schemaState ModuleContext -> Rule.ModuleRuleSchema { schemaState | hasAtLeastOneVisitor : () } ModuleContext
+moduleVisitor { reportErrors } schema =
     schema
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
-        |> Rule.withFinalModuleEvaluation finalModuleEvaluation
+        |> (if reportErrors then
+                Rule.withFinalModuleEvaluation finalModuleEvaluation
+
+            else
+                identity
+           )
 
 
 type alias ProjectContext =
