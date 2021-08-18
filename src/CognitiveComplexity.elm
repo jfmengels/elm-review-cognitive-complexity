@@ -214,7 +214,7 @@ rule2 thresholdList globalThreshold =
             , fromModuleToProject = fromModuleToProject thresholdPerModule globalThreshold
             , foldProjectContexts = foldProjectContexts
             }
-        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation thresholdPerModule globalThreshold)
+        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation { reportErrors = True } thresholdPerModule globalThreshold)
         |> Rule.fromProjectRuleSchema
 
 
@@ -227,7 +227,7 @@ generateConfig globalThreshold =
             , fromModuleToProject = fromModuleToProject Dict.empty globalThreshold
             , foldProjectContexts = foldProjectContexts
             }
-        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation Dict.empty globalThreshold)
+        |> Rule.withFinalProjectEvaluation (finalProjectEvaluation { reportErrors = False } Dict.empty globalThreshold)
         |> Rule.fromProjectRuleSchema
 
 
@@ -723,14 +723,14 @@ finalModuleEvaluation context =
         context.functionsToReport
 
 
-finalProjectEvaluation : Dict String Int -> Int -> ProjectContext -> List (Rule.Error scope)
-finalProjectEvaluation thresholdPerModule globalThreshold projectContext =
+finalProjectEvaluation : { reportErrors : Bool } -> Dict String Int -> Int -> ProjectContext -> List (Rule.Error scope)
+finalProjectEvaluation { reportErrors } thresholdPerModule globalThreshold projectContext =
     let
         newThresholdPerModule : Dict String Int
         newThresholdPerModule =
             Dict.fromList projectContext.thresholdPerModule
     in
-    if projectContext.hasErrors || newThresholdPerModule == thresholdPerModule then
+    if (reportErrors && projectContext.hasErrors) || newThresholdPerModule == thresholdPerModule then
         []
 
     else
