@@ -720,10 +720,6 @@ finalProjectEvaluation thresholdPerModule globalThreshold projectContext =
             suppressionList : String
             suppressionList =
                 String.join "\n    , " (List.map formatSuppression (Dict.toList newThresholdPerModule))
-
-            formatSuppression : ( String, Int ) -> String
-            formatSuppression ( moduleName, threshold ) =
-                "{ moduleName = \"" ++ moduleName ++ "\", threshold = " ++ String.fromInt threshold ++ " }"
         in
         [ Rule.globalError
             { message = "Congratulations, you have made your code less complex than before!"
@@ -753,6 +749,11 @@ suppressions =
                 ]
             }
         ]
+
+
+formatSuppression : ( String, Int ) -> String
+formatSuppression ( moduleName, threshold ) =
+    "{ moduleName = \"" ++ moduleName ++ "\", threshold = " ++ String.fromInt threshold ++ " }"
 
 
 explanation : List String
