@@ -719,7 +719,10 @@ finalProjectEvaluation thresholdPerModule globalThreshold projectContext =
         let
             suppressionList : String
             suppressionList =
-                String.join "\n    , " (List.map formatSuppression (Dict.toList newThresholdPerModule))
+                newThresholdPerModule
+                    |> Dict.toList
+                    |> List.map formatSuppression
+                    |> String.join "\n    , "
         in
         [ Rule.globalError
             { message = "Congratulations, you have made your code less complex than before!"
