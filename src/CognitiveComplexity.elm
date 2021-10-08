@@ -288,25 +288,7 @@ expressionEnterVisitorHelp node context =
             }
 
         Expression.LetExpression { declarations } ->
-            let
-                newRangesWhereNestingIncreases : List Range
-                newRangesWhereNestingIncreases =
-                    List.filterMap
-                        (\letDecl ->
-                            case Node.value letDecl of
-                                Expression.LetFunction { declaration } ->
-                                    if List.isEmpty (Node.value declaration).arguments then
-                                        Nothing
-
-                                    else
-                                        Just (declaration |> Node.value |> .expression |> Node.range)
-
-                                Expression.LetDestructuring _ _ ->
-                                    Nothing
-                        )
-                        declarations
-            in
-            { context | rangesWhereNestingIncreases = newRangesWhereNestingIncreases ++ context.rangesWhereNestingIncreases }
+            { context | rangesWhereNestingIncreases = computeRangesForLetDeclarations declarations ++ context.rangesWhereNestingIncreases }
 
         Expression.OperatorApplication operator _ left right ->
             if (operator == "&&" || operator == "||") && not (List.member (Node.range node) context.operandsToIgnore) then
@@ -350,6 +332,24 @@ expressionEnterVisitorHelp node context =
 
         _ ->
             context
+
+
+computeRangesForLetDeclarations : List (Node Expression.LetDeclaration) -> List Range
+computeRangesForLetDeclarations declarations =
+    List.filterMap
+        (\letDecl ->
+            case Node.value letDecl of
+                Expression.LetFunction { declaration } ->
+                    if List.isEmpty (Node.value declaration).arguments then
+                        Nothing
+
+                    else
+                        Just (declaration |> Node.value |> .expression |> Node.range)
+
+                Expression.LetDestructuring _ _ ->
+                    Nothing
+        )
+        declarations
 
 
 incrementAndIgnoreForOperands : String -> List Increase -> Node Expression -> Node Expression -> ( List Increase, List Range )
