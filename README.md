@@ -5,7 +5,7 @@ Provides an [`elm-review`](https://package.elm-lang.org/packages/jfmengels/elm-r
 
 ## Provided rules
 
-- [🔍 `CognitiveComplexity`](https://package.elm-lang.org/packages/jfmengels/elm-review-cognitive-complexity/1.0.1/CognitiveComplexity/ "Provides insight") - Reports functions that have a too high cognitive complexity.
+- [🔍 `CognitiveComplexity`](https://package.elm-lang.org/packages/jfmengels/elm-review-cognitive-complexity/1.0.2/CognitiveComplexity/ "Provides insight") - Reports functions that have a too high cognitive complexity.
 
 
 ## Configuration
