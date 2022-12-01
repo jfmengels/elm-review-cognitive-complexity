@@ -188,6 +188,14 @@ rule threshold =
         |> Rule.fromModuleRuleSchema
 
 
+type alias ProjectContext =
+    Dict String ComplexityDict
+
+
+type alias ComplexityDict =
+    Dict String Int
+
+
 type alias ModuleContext =
     { nesting : Int
     , operandsToIgnore : List Range
@@ -458,63 +466,25 @@ declarationExitVisitor node context =
 finalEvaluation : Int -> ModuleContext -> List (Rule.Error {})
 finalEvaluation threshold context =
     let
-        potentialRecursiveFunctions : Set String
-        potentialRecursiveFunctions =
-            List.map (.functionName >> Node.value) context.functionsToReport
-                |> Set.fromList
-
         recursiveCalls : RecursiveCalls
         recursiveCalls =
-            context.functionsToReport
-                |> List.map
-                    (\{ functionName, references } ->
-                        ( Node.value functionName, Dict.filter (\name _ -> Set.member name potentialRecursiveFunctions) references )
-                    )
-                |> Dict.fromList
-                |> findRecursiveCalls
+            computeRecursiveCalls context
     in
     List.filterMap
-        (\{ functionName, increases, references } ->
+        (\functionToReport ->
             let
-                recursiveCallsForFunctionName : List String
-                recursiveCallsForFunctionName =
-                    Dict.get (Node.value functionName) recursiveCalls
-                        |> Maybe.withDefault Set.empty
-                        |> Set.toList
-
                 allIncreases : List Increase
                 allIncreases =
-                    List.concat
-                        [ increases
-                        , recursiveCallsForFunctionName
-                            |> List.filterMap
-                                (\referenceToRecursiveFunction ->
-                                    Dict.get referenceToRecursiveFunction references
-                                        |> Maybe.map (Tuple.pair referenceToRecursiveFunction)
-                                )
-                            |> List.map
-                                (\( reference, location ) ->
-                                    { line = location
-                                    , increase = 1
-                                    , nesting = 0
-                                    , kind =
-                                        if Node.value functionName == reference then
-                                            RecursiveCall
-
-                                        else
-                                            IndirectRecursiveCall reference
-                                    }
-                                )
-                        ]
+                    computeIncreases recursiveCalls functionToReport
 
                 finalComplexity : Int
                 finalComplexity =
-                    List.sum (List.map .increase allIncreases)
+                    List.foldl (\{ increase } acc -> increase + acc) 0 allIncreases
             in
             if finalComplexity > threshold then
                 Just
                     (Rule.error
-                        { message = Node.value functionName ++ " has a cognitive complexity of " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
+                        { message = Node.value functionToReport.functionName ++ " has a cognitive complexity of " ++ String.fromInt finalComplexity ++ ", higher than the allowed " ++ String.fromInt threshold
                         , details =
                             if List.isEmpty allIncreases then
                                 explanation
@@ -527,13 +497,65 @@ finalEvaluation threshold context =
                                             |> String.join "\n"
                                        ]
                         }
-                        (Node.range functionName)
+                        (Node.range functionToReport.functionName)
                     )
 
             else
                 Nothing
         )
         context.functionsToReport
+
+
+computeIncreases : RecursiveCalls -> FunctionToReport -> List Increase
+computeIncreases allRecursiveCalls { functionName, increases, references } =
+    case Dict.get (Node.value functionName) allRecursiveCalls of
+        Just recursiveCalls ->
+            Set.foldl
+                (\reference acc ->
+                    case Dict.get reference references of
+                        Just location ->
+                            { line = location
+                            , increase = 1
+                            , nesting = 0
+                            , kind =
+                                if Node.value functionName == reference then
+                                    RecursiveCall
+
+                                else
+                                    IndirectRecursiveCall reference
+                            }
+                                :: acc
+
+                        Nothing ->
+                            acc
+                )
+                increases
+                recursiveCalls
+
+        Nothing ->
+            increases
+
+
+computeRecursiveCalls : ModuleContext -> RecursiveCalls
+computeRecursiveCalls context =
+    let
+        potentialRecursiveFunctions : Set String
+        potentialRecursiveFunctions =
+            List.foldl
+                (\fn acc -> Set.insert (Node.value fn.functionName) acc)
+                Set.empty
+                context.functionsToReport
+    in
+    context.functionsToReport
+        |> List.foldl
+            (\{ functionName, references } acc ->
+                Dict.insert
+                    (Node.value functionName)
+                    (Dict.filter (\name _ -> Set.member name potentialRecursiveFunctions) references)
+                    acc
+            )
+            Dict.empty
+        |> findRecursiveCalls
 
 
 explanation : List String
@@ -600,9 +622,8 @@ type VisitState
 findRecursiveCalls : Dict String (Dict String a) -> RecursiveCalls
 findRecursiveCalls graph =
     graph
-        |> Dict.keys
-        |> List.foldl
-            (\vertice ( recursiveCalls, visited ) ->
+        |> Dict.foldl
+            (\vertice _ ( recursiveCalls, visited ) ->
                 let
                     res : { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
                     res =
