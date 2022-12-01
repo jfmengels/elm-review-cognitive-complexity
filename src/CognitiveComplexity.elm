@@ -11,6 +11,7 @@ import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.Range exposing (Location, Range)
+import Json.Encode as Encode
 import Review.Rule as Rule exposing (Rule)
 import Set exposing (Set)
 
@@ -56,7 +57,26 @@ I would for now recommend to use it with a very high threshold to find places in
 and eventually to enable it in your configuration to make sure no new extremely complex functions appear. As you refactor more
 and more of your codebase, you can gradually lower the threshold until you reach a level that you feel happy with.
 
-Please let me know how enabling this rule works out for you!
+Please let me know how enabling this rule works out for you! If enforcing doesn't work for you, then you can use this as
+an insight rule instead.
+
+
+## Use as an insight rule
+
+If instead of enforcing a threshold, you wish to have an overview of the complexity for each function, you can run the
+rule using as an insight rule (using `elm-review --report=json --extract`), which would yield an output like the following:
+
+```json
+{
+  "Some.Module": {
+    "someFunction": 16,
+    "someOtherFunction": 0
+  },
+  "Some.Other.Module": {
+    "awesomeFunction": 2
+  }
+}
+```
 
 
 ## Complexity breakdown
@@ -171,6 +191,13 @@ elm-review --template jfmengels/elm-review-cognitive-complexity/example --rules 
 
 The cognitive complexity is set to 15 in the configuration used by the example.
 
+If instead of enforcing a threshold, you wish to have an overview of the complexity for each function, you can run the
+rule like this (requires [`jq`](https://stedolan.github.io/jq/)):
+
+```bash
+elm-review --template jfmengels/elm-review-cognitive-complexity/example --extract --report=json --rules CognitiveComplexity | jq -r '.extracts.CognitiveComplexity'
+```
+
 
 ## Thanks
 
@@ -180,12 +207,24 @@ Thanks to G. Ann Campbell for the different talks she made on the subject.
 -}
 rule : Int -> Rule
 rule threshold =
-    Rule.newModuleRuleSchema "CognitiveComplexity" initialContext
+    Rule.newProjectRuleSchema "CognitiveComplexity" initialContext
+        |> Rule.withModuleVisitor (moduleVisitor threshold)
+        |> Rule.withModuleContextUsingContextCreator
+            { fromProjectToModule = fromProjectToModule
+            , fromModuleToProject = fromModuleToProject
+            , foldProjectContexts = foldProjectContexts
+            }
+        |> Rule.withDataExtractor dataExtractor
+        |> Rule.fromProjectRuleSchema
+
+
+moduleVisitor : Int -> Rule.ModuleRuleSchema schemaState ModuleContext -> Rule.ModuleRuleSchema { schemaState | hasAtLeastOneVisitor : () } ModuleContext
+moduleVisitor threshold schema =
+    schema
         |> Rule.withDeclarationExitVisitor declarationExitVisitor
         |> Rule.withExpressionEnterVisitor expressionEnterVisitor
         |> Rule.withExpressionExitVisitor expressionExitVisitor
-        |> Rule.withFinalModuleEvaluation (finalEvaluation threshold)
-        |> Rule.fromModuleRuleSchema
+        |> Rule.withFinalModuleEvaluation (finalModuleEvaluation threshold)
 
 
 type alias ProjectContext =
@@ -231,16 +270,58 @@ type IncreaseKind
     | IndirectRecursiveCall String
 
 
-initialContext : ModuleContext
+initialContext : ProjectContext
 initialContext =
-    { nesting = 0
-    , operandsToIgnore = []
-    , elseIfToIgnore = []
-    , rangesWhereNestingIncreases = []
-    , references = Dict.empty
-    , increases = []
-    , functionsToReport = []
-    }
+    Dict.empty
+
+
+fromProjectToModule : Rule.ContextCreator ProjectContext ModuleContext
+fromProjectToModule =
+    Rule.initContextCreator
+        (always
+            { nesting = 0
+            , operandsToIgnore = []
+            , elseIfToIgnore = []
+            , rangesWhereNestingIncreases = []
+            , references = Dict.empty
+            , increases = []
+            , functionsToReport = []
+            }
+        )
+
+
+fromModuleToProject : Rule.ContextCreator ModuleContext ProjectContext
+fromModuleToProject =
+    Rule.initContextCreator
+        (\moduleName moduleContext ->
+            let
+                recursiveCalls : RecursiveCalls
+                recursiveCalls =
+                    computeRecursiveCalls moduleContext
+            in
+            List.foldl
+                (\functionToReport acc ->
+                    let
+                        allIncreases : List Increase
+                        allIncreases =
+                            computeIncreases recursiveCalls functionToReport
+
+                        finalComplexity : Int
+                        finalComplexity =
+                            List.foldl (\{ increase } complexity -> increase + complexity) 0 allIncreases
+                    in
+                    Dict.insert (Node.value functionToReport.functionName) finalComplexity acc
+                )
+                Dict.empty
+                moduleContext.functionsToReport
+                |> Dict.singleton (String.join "." moduleName)
+        )
+        |> Rule.withModuleName
+
+
+foldProjectContexts : ProjectContext -> ProjectContext -> ProjectContext
+foldProjectContexts =
+    Dict.union
 
 
 expressionEnterVisitor : Node Expression -> ModuleContext -> ( List nothing, ModuleContext )
@@ -463,8 +544,8 @@ declarationExitVisitor node context =
     )
 
 
-finalEvaluation : Int -> ModuleContext -> List (Rule.Error {})
-finalEvaluation threshold context =
+finalModuleEvaluation : Int -> ModuleContext -> List (Rule.Error {})
+finalModuleEvaluation threshold context =
     let
         recursiveCalls : RecursiveCalls
         recursiveCalls =
@@ -690,6 +771,20 @@ processDFSTree graph stack visited =
                 , stack = List.drop 1 stack
                 }
            )
+
+
+dataExtractor : ProjectContext -> Encode.Value
+dataExtractor projectContext =
+    Encode.dict identity encodeComplexityDict projectContext
+
+
+encodeComplexityDict : ComplexityDict -> Encode.Value
+encodeComplexityDict dict =
+    dict
+        |> Dict.toList
+        |> List.sortBy (Tuple.second >> negate)
+        |> List.map (\( name, complexity ) -> ( name, Encode.int complexity ))
+        |> Encode.object
 
 
 insertCycle : List String -> String -> RecursiveCalls -> RecursiveCalls
