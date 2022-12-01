@@ -3,7 +3,7 @@
     "name": "jfmengels/elm-review-cognitive-complexity",
     "summary": "Provide an elm-review rule to measure the cognitive complexity of a function.",
     "license": "BSD-3-Clause",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "exposed-modules": [
         "CognitiveComplexity"
     ],
