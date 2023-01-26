@@ -408,19 +408,30 @@ expressionEnterVisitorHelp node context =
             { context | nesting = context.nesting + 1 }
 
         Expression.FunctionOrValue [] name ->
-            { context
-                | references =
-                    if Dict.member name context.references then
-                        -- The reference already exists, and we want to keep the first reference
-                        -- for a better presentation
-                        context.references
+            if isFunctionReference name then
+                { context
+                    | references =
+                        if Dict.member name context.references then
+                            -- The reference already exists, and we want to keep the first reference
+                            -- for a better presentation
+                            context.references
 
-                    else
-                        Dict.insert name (Node.range node).start context.references
-            }
+                        else
+                            Dict.insert name (Node.range node).start context.references
+                }
+
+            else
+                context
 
         _ ->
             context
+
+
+isFunctionReference : String -> Bool
+isFunctionReference name =
+    name
+        |> String.left 1
+        |> String.all Char.isLower
 
 
 computeRangesForLetDeclarations : List (Node Expression.LetDeclaration) -> List Range
