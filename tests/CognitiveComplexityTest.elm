@@ -614,12 +614,11 @@ fun5 n =
         , test "recursive call complexity should not depend on alphabetical order" <|
             \() ->
                 """module A exposing (..)
+b () = b ()
 
-b = b
+a = b ()
 
-a = b
-
-c = b
+c = b ()
 """
                     |> expectAtExactly
                         [ { name = "a"
