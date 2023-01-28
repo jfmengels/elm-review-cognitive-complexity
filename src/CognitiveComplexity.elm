@@ -715,19 +715,18 @@ findRecursiveCalls : Dict String (Dict String a) -> RecursiveCalls
 findRecursiveCalls graph =
     graph
         |> Dict.foldl
-            (\vertice _ ( recursiveCalls, visited ) ->
+            (\vertice _ recursiveCalls ->
                 let
                     res : { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
                     res =
                         processDFSTree
                             graph
                             [ vertice ]
-                            (Dict.insert vertice InStack visited)
+                            (Dict.singleton vertice InStack)
                 in
-                ( mergeRecursiveCallsDict res.recursiveCalls recursiveCalls, res.visited )
+                mergeRecursiveCallsDict res.recursiveCalls recursiveCalls
             )
-            ( Dict.empty, Dict.empty )
-        |> Tuple.first
+            Dict.empty
 
 
 mergeRecursiveCallsDict : RecursiveCalls -> RecursiveCalls -> RecursiveCalls
