@@ -614,6 +614,7 @@ fun5 n =
         , test "recursive call complexity should not depend on alphabetical order" <|
             \() ->
                 """module A exposing (..)
+
 b () = b ()
 
 a = b ()
@@ -642,7 +643,7 @@ c = b ()
                           "A": {
                             "a": 1,
                             "b": 1,
-                            "c": 0
+                            "c": 1
                           }
                        }"""
         , test "the complexity of a function should not affect another function's computed complexity" <|
