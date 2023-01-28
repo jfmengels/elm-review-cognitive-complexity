@@ -337,32 +337,7 @@ expressionEnterVisitorHelp : Node Expression -> ModuleContext -> ModuleContext
 expressionEnterVisitorHelp node context =
     case Node.value node of
         Expression.IfBlock _ _ else_ ->
-            if not (List.member (Node.range node) context.elseIfToIgnore) then
-                { context
-                    | increases =
-                        { line = (Node.range node).start
-                        , increase = context.nesting + 1
-                        , nesting = context.nesting
-                        , kind = If
-                        }
-                            :: context.increases
-                    , nesting = context.nesting + 1
-                    , elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore
-                }
-
-            else
-                -- This if expression is an else if
-                -- We want to increase the complexity but keep the same nesting as the parent if
-                { context
-                    | increases =
-                        { line = (Node.range node).start
-                        , increase = context.nesting
-                        , nesting = context.nesting - 1
-                        , kind = ElseIf
-                        }
-                            :: context.increases
-                    , elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore
-                }
+            visitElseExpression (Node.range node) else_ context
 
         Expression.CaseExpression _ ->
             { context
@@ -425,6 +400,36 @@ expressionEnterVisitorHelp node context =
 
         _ ->
             context
+
+
+visitElseExpression : Range -> Node a -> ModuleContext -> ModuleContext
+visitElseExpression ifExprRange else_ context =
+    if not (List.member ifExprRange context.elseIfToIgnore) then
+        { context
+            | increases =
+                { line = ifExprRange.start
+                , increase = context.nesting + 1
+                , nesting = context.nesting
+                , kind = If
+                }
+                    :: context.increases
+            , nesting = context.nesting + 1
+            , elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore
+        }
+
+    else
+        -- This if expression is an else if
+        -- We want to increase the complexity but keep the same nesting as the parent if
+        { context
+            | increases =
+                { line = ifExprRange.start
+                , increase = context.nesting
+                , nesting = context.nesting - 1
+                , kind = ElseIf
+                }
+                    :: context.increases
+            , elseIfToIgnore = Node.range else_ :: context.elseIfToIgnore
+        }
 
 
 isFunctionReference : String -> Bool
