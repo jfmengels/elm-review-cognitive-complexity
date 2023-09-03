@@ -747,45 +747,46 @@ mergeRecursiveCallsDict left right =
 
 processDFSTree : Dict String (Dict String a) -> List String -> Visited -> { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
 processDFSTree graph stack visited =
-    let
-        vertices : List String
-        vertices =
-            List.head stack
-                |> Maybe.andThen (\v -> Dict.get v graph)
-                |> Maybe.withDefault Dict.empty
-                |> Dict.keys
-    in
-    List.foldl
-        (\vertice acc ->
-            case Dict.get vertice visited of
-                Just InStack ->
-                    { acc | recursiveCalls = insertCycle stack vertice acc.recursiveCalls }
+    case stack of
+        [] ->
+            { recursiveCalls = Dict.empty, visited = visited, stack = [] }
 
-                Just Done ->
-                    acc
+        head :: _ ->
+            let
+                vertices : List String
+                vertices =
+                    Dict.get head graph
+                        |> Maybe.withDefault Dict.empty
+                        |> Dict.keys
+            in
+            List.foldl
+                (\vertice acc ->
+                    case Dict.get vertice visited of
+                        Just InStack ->
+                            { acc | recursiveCalls = insertCycle stack vertice acc.recursiveCalls }
 
-                Nothing ->
-                    let
-                        res : { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
-                        res =
-                            processDFSTree
-                                graph
-                                (vertice :: stack)
-                                (Dict.insert vertice InStack visited)
-                    in
-                    { recursiveCalls = mergeRecursiveCallsDict res.recursiveCalls acc.recursiveCalls, visited = res.visited }
-        )
-        { recursiveCalls = Dict.empty, visited = visited }
-        vertices
-        |> (\res ->
-                { recursiveCalls = res.recursiveCalls
-                , visited =
-                    List.head stack
-                        |> Maybe.map (\v -> Dict.insert v Done res.visited)
-                        |> Maybe.withDefault res.visited
-                , stack = List.drop 1 stack
-                }
-           )
+                        Just Done ->
+                            acc
+
+                        Nothing ->
+                            let
+                                res : { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
+                                res =
+                                    processDFSTree
+                                        graph
+                                        (vertice :: stack)
+                                        (Dict.insert vertice InStack visited)
+                            in
+                            { recursiveCalls = mergeRecursiveCallsDict res.recursiveCalls acc.recursiveCalls, visited = res.visited }
+                )
+                { recursiveCalls = Dict.empty, visited = visited }
+                vertices
+                |> (\res ->
+                        { recursiveCalls = res.recursiveCalls
+                        , visited = Dict.insert head Done res.visited
+                        , stack = List.drop 1 stack
+                        }
+                   )
 
 
 dataExtractor : ProjectContext -> Encode.Value
