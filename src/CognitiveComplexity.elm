@@ -751,7 +751,7 @@ processDFSTree graph stack visited =
         [] ->
             { recursiveCalls = Dict.empty, visited = visited, stack = [] }
 
-        head :: _ ->
+        head :: restOfStack ->
             let
                 vertices : List String
                 vertices =
@@ -781,12 +781,19 @@ processDFSTree graph stack visited =
                 )
                 { recursiveCalls = Dict.empty, visited = visited }
                 vertices
-                |> (\res ->
-                        { recursiveCalls = res.recursiveCalls
-                        , visited = Dict.insert head Done res.visited
-                        , stack = List.drop 1 stack
-                        }
-                   )
+                |> updateStack head restOfStack
+
+
+updateStack :
+    String
+    -> List String
+    -> { recursiveCalls : RecursiveCalls, visited : Visited }
+    -> { recursiveCalls : RecursiveCalls, visited : Visited, stack : List String }
+updateStack head stack res =
+    { recursiveCalls = res.recursiveCalls
+    , visited = Dict.insert head Done res.visited
+    , stack = stack
+    }
 
 
 dataExtractor : ProjectContext -> Encode.Value
